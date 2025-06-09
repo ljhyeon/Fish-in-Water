@@ -104,6 +104,34 @@ const theme = createTheme({
         }),
       },
     },
+    MuiButton: {
+      styleOverrides: {
+        contained: ({ theme }) => ({
+          backgroundColor: theme.palette.primary.main,
+          color: theme.palette.primary.contrastText,
+          ...theme.typography.button,
+          '&:hover': {
+            backgroundColor: theme.palette.primary.dark,
+          },
+          '&:disabled': {
+            // MUI 기본 contained disabled 스타일 유지
+          },
+        }),
+        outlined: ({ theme }) => ({
+          backgroundColor: theme.palette.primary.contrastText,
+          borderColor: theme.palette.primary.main,
+          color: theme.palette.primary.main,
+          ...theme.typography.button,
+          '&:hover': {
+            backgroundColor: theme.palette.grey[300],
+            borderColor: theme.palette.primary.main,
+          },
+          '&:disabled': {
+            // MUI 기본 outlined disabled 스타일 유지
+          },
+        }),
+      },
+    },
   },
 });
 
