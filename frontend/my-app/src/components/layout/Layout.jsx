@@ -1,12 +1,14 @@
 import { useState, } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
 import { Box, BottomNavigation, BottomNavigationAction } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 
-import { AuctionIcon, Properties, Info } from './Icons';
+import { AuctionIcon, Properties, Info, FishLogo } from './Icons';
 
-export function Layout({ children }) {
+export function Layout({ description, children }) {
     const theme = useTheme();
 
     const navigate = useNavigate();
@@ -61,6 +63,14 @@ export function Layout({ children }) {
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+            {/* 상단바 영역 - 고정 위치 */}
+            <AppBar position="fixed">
+                <Toolbar sx={{ display: 'grid', justifyItems: 'center', minHeight: '100px !important', }}>
+                    <FishLogo />
+                    <Box sx={{ mb:1, width: '100%', height: '16px' }}>{description}</Box>
+                </Toolbar>
+            </AppBar>
+
             {/* 메인 컨텐츠 영역 */}
             <Box sx={{ flex: 1, pb: 7 }}> {/* pb: 하단 네비게이션 공간 확보 */}
                 {children}

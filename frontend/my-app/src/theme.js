@@ -132,6 +132,26 @@ const theme = createTheme({
         }),
       },
     },
+    MuiAppBar: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          backgroundColor: theme.palette.primary.main, // indigo[500]
+          boxShadow: 'none',
+          color: theme.palette.primary.contrastText,
+        }),
+      },
+    },
+    MuiToolbar: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          alignItems: 'center',
+          justifyContent: 'center',
+          paddingTop: theme.spacing(2),
+          paddingBottom: theme.spacing(2),
+          minHeight: '80px !important',
+        }),
+      },
+    },
   },
 });
 
