@@ -4,7 +4,7 @@ import { Box, CircularProgress, Typography } from '@mui/material';
 import { useAuth } from '../hooks/useAuth';
 
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, user, getUserInfo } = useAuth();
 
   if (loading) {
     return (
@@ -25,8 +25,20 @@ const ProtectedRoute = ({ children }) => {
   }
 
   if (!isAuthenticated) {
+    console.log('🚫 인증되지 않은 사용자, 로그인 페이지로 이동');
     return <Navigate to="/login" replace />;
   }
+
+  // 인증된 사용자의 정보를 콘솔에 출력
+  const userInfo = getUserInfo();
+  console.log('✅ 인증된 사용자 정보:', {
+    uid: userInfo.uid,
+    email: userInfo.email,
+    displayName: userInfo.displayName,
+    photoURL: userInfo.photoURL,
+    emailVerified: userInfo.emailVerified,
+    loginTime: new Date().toLocaleString()
+  });
 
   return children;
 };

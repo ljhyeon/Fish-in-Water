@@ -2,6 +2,7 @@ import { Container, Typography } from '@mui/material';
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider } from '@mui/material/styles';
 import { Layout } from './components/layout/Layout';
+import ProtectedRoute from './components/ProtectedRoute';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Home1 } from './pages/Home1';
 import { Home2 } from './pages/Home2';
@@ -57,12 +58,54 @@ function AppContent() {
     <Routes>
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<Login />} />
-      <Route path="/home" element={<Home1 />} />
-      <Route path="/auction" element={<Home2 />} />
-      <Route path="/myinfo" element={<Home3 />} />
-      <Route path="/info1/:id" element={<Info1 />} />
-      <Route path="/info2/:id" element={<Info2 />} />
-      <Route path="/post/:id" element={<Post />} />
+      <Route 
+        path="/home" 
+        element={
+          <ProtectedRoute>
+            <Home1 />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/auction" 
+        element={
+          <ProtectedRoute>
+            <Home2 />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/myinfo" 
+        element={
+          <ProtectedRoute>
+            <Home3 />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/info1/:id" 
+        element={
+          <ProtectedRoute>
+            <Info1 />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/info2/:id" 
+        element={
+          <ProtectedRoute>
+            <Info2 />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/post/:id" 
+        element={
+          <ProtectedRoute>
+            <Post />
+          </ProtectedRoute>
+        } 
+      />
     </Routes>
   );
 
