@@ -1,0 +1,72 @@
+export const testItems = [
+    {
+        id: 1,
+        image: "/test_fish1.jpg",
+        name: "제주도 특산 황돔",
+        origin: "제주도 서귀포시",
+        status: "낙찰/결제 대기중",
+    },
+    {
+        id: 2,
+        image: "/test_fish2.jpg",
+        name: "부산 앞바다 참돔",
+        origin: "부산 해운대구",
+        status: "낙찰/결제 완료",
+    },
+    {
+        id: 3,
+        image: "/test_fish3.jpg",
+        name: "강원도 동해 명태",
+        origin: "강원도 동해시",
+        status: "유찰",
+    },
+    {
+        id: 4,
+        image: "/test_fish4.jpg",
+        name: "울산 고래고기",
+        origin: "울산 남구",
+        status: "진행중",
+    },
+    {
+        id: 5,
+        image: "/test_fish5.jpg",
+        name: "인천 새우",
+        origin: "인천 중구",
+        status: "낙찰/결제 대기중",
+    },
+    {
+        id: 6,
+        image: "/test_fish6.jpg",
+        name: "목포 전어",
+        origin: "전라남도 목포시",
+        status: "유찰",
+    },
+    {
+        id: 7,
+        image: "/test_fish7.jpg",
+        name: "포항 대게",
+        origin: "경상북도 포항시",
+        status: "진행중",
+    },
+    {
+        id: 8,
+        image: "/test_fish8.jpg",
+        name: "여수 돌돔",
+        origin: "전라남도 여수시",
+        status: "낙찰/결제 완료",
+    },
+    {
+        id: 9,
+        image: "/test_fish9.jpg",
+        name: "강릉 방어",
+        origin: "강원도 강릉시",
+        status: "진행중",
+    },
+    {
+        id: 10,
+        image: "/test_fish10.jpg",
+        name: "통영 멸치",
+        origin: "경상남도 통영시",
+        status: "낙찰/결제 대기중",
+    }
+]; 
