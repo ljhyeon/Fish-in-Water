@@ -1,31 +1,62 @@
-import React from 'react';
-import { Typography, Box, Container } from '@mui/material';
+import { useState, useEffect } from 'react';
+import { useNavigate } from "react-router-dom";
+import { Box, Button } from '@mui/material';
 import GoogleLogin from '../components/GoogleLogin';
 
 export function Login() {
+    const navigate = useNavigate();
+
+    const [showButton, setShowButton] = useState(false);
+    
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setShowButton(true);
+        }, 3000); // 3초 후에 버튼 표시
+
+        return () => clearTimeout(timer);
+    }, []);
+
     return (
-        <Container maxWidth="sm">
-            <Box sx={{ mt: 4, mb: 4 }}>
-                <Typography variant="h3" component="h1" gutterBottom align="center">
-                    로그인
-                </Typography>
-                <Typography variant="body1" color="text.secondary" align="center" sx={{ mb: 4 }}>
-                    구글 계정으로 간편하게 로그인하세요
-                </Typography>
-                
-                <GoogleLogin />
-                
-                <Box sx={{ mt: 4, p: 2, backgroundColor: '#f0f7ff', borderRadius: 1 }}>
-                    <Typography variant="h6" gutterBottom>
-                        🔒 보안 안내
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                        • Firebase Authentication을 통한 안전한 로그인<br/>
-                        • 개인정보는 Google 정책에 따라 보호됩니다<br/>
-                        • 로그인 시 이메일과 기본 프로필 정보에 접근합니다
-                    </Typography>
-                </Box>
-            </Box>
-        </Container>
+        <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            minHeight: '100vh', 
+            minWidth: '100vw', 
+            justifyContent: 'center', 
+            alignItems: 'center',
+            backgroundColor: '#f5f5f5'
+        }}>
+            <img src="/logo.svg" alt="로고" style={{ marginBottom: '40px' }} />
+            
+            <Button
+                variant="outlined"
+                startIcon={
+                    <img 
+                        src="https://developers.google.com/identity/images/g-logo.png" 
+                        alt="Google"
+                        style={{ width: '18px', height: '18px' }}
+                    />
+                }
+                sx={{
+                    minWidth: '240px',
+                    padding: '12px 24px',
+                    boxShadow: '0 1px 2px 0 rgba(60,64,67,0.30), 0 1px 3px 1px rgba(60,64,67,0.15)',
+                    opacity: showButton ? 1 : 0,
+                    '&:hover': {
+                        boxShadow: '0 1px 3px 0 rgba(60,64,67,0.30), 0 4px 8px 3px rgba(60,64,67,0.15)',
+                    },
+                    '&:active': {
+                        boxShadow: '0 1px 2px 0 rgba(60,64,67,0.30), 0 2px 6px 2px rgba(60,64,67,0.15)'
+                    }
+                }}
+                onClick={() => {
+                    // 구글 로그인 로직 구현
+                    console.log('구글 로그인 클릭');
+                    navigate('/home');
+                }}
+            >
+                구글 계정으로 로그인
+            </Button>
+        </Box>
     )
 }
