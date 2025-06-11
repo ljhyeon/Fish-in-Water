@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { Box, Button } from '@mui/material';
+import GoogleLogin from '../components/GoogleLogin';
 
 export function Login() {
     const navigate = useNavigate();
