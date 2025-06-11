@@ -1,4 +1,4 @@
-import { Container } from '@mui/material';
+import { Container, Typography } from '@mui/material';
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider } from '@mui/material/styles';
 import { Layout } from './components/layout/Layout';
@@ -15,9 +15,43 @@ import theme from './theme';
 // Layout이 필요없는 페이지들
 const noLayoutPages = ['/login'];
 
+// 페이지별 description 정의
+const pageDescriptions = {
+  '/home': (
+    <Typography 
+      variant="caption" 
+      sx={{ 
+        color: 'white', 
+        fontWeight: 500,
+        textAlign: 'center',
+        flex: 1
+      }}
+    >
+      지금 진행 중인 경매들이에요
+    </Typography>
+  ),
+  '/auction': (
+    <Typography 
+      variant="caption" 
+      sx={{ 
+        color: 'white', 
+        fontWeight: 500,
+        textAlign: 'center',
+        flex: 1
+      }}
+    >
+      지금 진행 중인 경매들이에요
+    </Typography>
+  ),
+  '/myinfo': null, // 내 정보 페이지는 description 없음
+};
+
 function AppContent() {
   const location = useLocation();
   const shouldShowLayout = !noLayoutPages.includes(location.pathname);
+
+  // 현재 경로의 description 가져오기
+  const currentDescription = pageDescriptions[location.pathname] || null;
 
   const content = (
     <Routes>
@@ -34,7 +68,7 @@ function AppContent() {
 
   if (shouldShowLayout) {
     return (
-      <Layout>
+      <Layout description={currentDescription}>
         <Container sx={{ mt: 2, mb: 2 }}>
           {content}
         </Container>
