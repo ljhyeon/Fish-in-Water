@@ -112,7 +112,7 @@ function AppContent() {
   if (shouldShowLayout) {
     return (
       <Layout description={currentDescription}>
-        <Container sx={{ mt: 2, mb: 2 }}>
+        <Container disableGutters>
           {content}
         </Container>
       </Layout>
