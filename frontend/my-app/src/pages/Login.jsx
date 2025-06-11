@@ -10,7 +10,7 @@ export function Login() {
     useEffect(() => {
         const timer = setTimeout(() => {
             setShowButton(true);
-        }, 5000); // 5초 후에 버튼 표시
+        }, 3000); // 3초 후에 버튼 표시
 
         return () => clearTimeout(timer);
     }, []);
