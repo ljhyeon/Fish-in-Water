@@ -27,25 +27,12 @@ export const usePWA = () => {
       }
     };
 
-    // Service Worker 등록
-    const registerServiceWorker = async () => {
-      if ('serviceWorker' in navigator) {
-        try {
-          const registration = await navigator.serviceWorker.register('/sw.js');
-          console.log('Service Worker registered successfully:', registration);
-        } catch (error) {
-          console.log('Service Worker registration failed:', error);
-        }
-      }
-    };
-
     // 이벤트 리스너 등록
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
 
     // 초기화 함수들 실행
     checkIfInstalled();
-    registerServiceWorker();
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
