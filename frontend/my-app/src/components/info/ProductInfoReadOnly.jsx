@@ -4,6 +4,29 @@ import AccessAlarmOutlinedIcon from '@mui/icons-material/AccessAlarmOutlined';
 import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
 import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined';
 
+function formatAuctionTime(start, end) {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+
+    const pad = (num) => num.toString().padStart(2, '0');
+
+    const formatDate = (date) => 
+        `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    const formatTime = (date) =>
+        `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+
+    const sameDate =
+        startDate.getFullYear() === endDate.getFullYear() &&
+        startDate.getMonth() === endDate.getMonth() &&
+        startDate.getDate() === endDate.getDate();
+
+    if (sameDate) {
+        return `${formatDate(startDate)} ${formatTime(startDate)} ~ ${formatTime(endDate)}`;
+    } else {
+        return `${formatDate(startDate)} ${formatTime(startDate)} ~ ${formatDate(endDate)} ${formatTime(endDate)}`;
+    }
+}
+
 export function ProductInfoReadOnly({ 
     dummyData
 }) {
@@ -14,7 +37,7 @@ export function ProductInfoReadOnly({
                     variant="h5" 
                     sx={{ fontWeight: '800',  mb: 0.5 }}
                 >
-                    {dummyData.name}
+                    {dummyData.product_name}
                 </Typography>
                 <Typography 
                     variant="overline" 
@@ -28,21 +51,21 @@ export function ProductInfoReadOnly({
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <RoomOutlinedIcon sx={{ color: 'secondary.main' }} />
                     <Typography variant="body2" sx={{ color: 'grey.700' }}>
-                        {dummyData.location}
+                        {dummyData.origin}
                     </Typography>
                 </Box>
                 
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <AccessAlarmOutlinedIcon sx={{ color: 'secondary.main' }} />
                     <Typography variant="body2" sx={{ color: 'grey.700' }}>
-                        {dummyData.time}
+                        {formatAuctionTime(dummyData.auction_start_time, dummyData.auction_end_time)}
                     </Typography>
                 </Box>
                 
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <PaymentsOutlinedIcon sx={{ color: 'secondary.main' }} />
                     <Typography variant="body2" sx={{ color: 'grey.700' }}>
-                        {dummyData.min_price.toLocaleString('ko-KR')} 원
+                        {dummyData.expected_price.toLocaleString('ko-KR')} 원
                     </Typography>
                 </Box>
                 
@@ -56,7 +79,7 @@ export function ProductInfoReadOnly({
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2, }}>
                 <Typography variant="Body2" sx={{fontWeight: 800}}>매물 소개</Typography>
-                <Typography variant="overlined">{dummyData.description}</Typography>
+                <Typography variant="overlined">{dummyData.additional_notes}</Typography>
             </Box>
         </Box>
     );
