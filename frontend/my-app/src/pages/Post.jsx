@@ -6,6 +6,8 @@ import { ImageInputWithBackButton } from "../components/post/ImageInputWithBackB
 import { ProductInfoForm } from "../components/post/ProductInfoForm";
 import InfoDialog from '../components/InfoDialog';
 
+import { validateProductForm, isFormValid, removeFieldErrors } from "../utils/validations";
+
 export function Post() {
     const navigate = useNavigate();
     
@@ -13,8 +15,8 @@ export function Post() {
     const [selectedImage, setSelectedImage] = useState(null);
     const [imageFile, setImageFile] = useState(null);
     const [formData, setFormData] = useState({
+        seller_id: 1, // TODO: 현재 등록하는 회원의 id로 지정
         product_name: '',
-        recommend: '',
         origin: '',
         auction_start_time: '',
         auction_end_time: '',
@@ -36,7 +38,7 @@ export function Post() {
         
         // 이미지 선택 시 이미지 관련 에러 제거
         if (errors.image) {
-            setErrors(prev => ({ ...prev, image: undefined }));
+            setErrors(prev => removeFieldErrors(prev, 'image'));
         }
     };
 
@@ -44,89 +46,24 @@ export function Post() {
         setFormData(newFormData);
         
         // 폼 데이터 변경 시 해당 필드의 에러 제거
-        const updatedErrors = { ...errors };
-        Object.keys(newFormData).forEach(key => {
-            if (newFormData[key] && updatedErrors[key]) {
-                delete updatedErrors[key];
-            }
-        });
-        setErrors(updatedErrors);
-    };
-
-    // 시간 유효성 검사 함수
-    const validateTimes = (startTime, endTime) => {
-        const now = new Date();
-        const start = new Date(startTime);
-        const end = new Date(endTime);
+        const fieldsToRemove = Object.keys(newFormData).filter(
+            key => newFormData[key] && errors[key]
+        );
         
-        // 시작 시간이 현재 시간보다 이전인지 확인
-        if (start <= now) {
-            return '경매 시작 시간은 현재 시간보다 미래여야 합니다.';
+        if (fieldsToRemove.length > 0) {
+            setErrors(prev => removeFieldErrors(prev, fieldsToRemove));
         }
-        
-        // 종료 시간이 시작 시간보다 이전인지 확인
-        if (end <= start) {
-            return '경매 시작 시간은 종료 시간보다 이전이어야 합니다.';
-        }
-        
-        // // 경매 기간이 너무 짧은지 확인 (최소 30분)
-        // const timeDifference = end.getTime() - start.getTime();
-        // const minDuration = 30 * 60 * 1000; // 30분을 밀리초로 변환
-        
-        // if (timeDifference < minDuration) {
-        //     return '경매 진행 시간은 최소 30분 이상이어야 합니다.';
-        // }
-        
-        // // 경매 기간이 너무 긴지 확인 (최대 30일)
-        // const maxDuration = 30 * 24 * 60 * 60 * 1000; // 30일을 밀리초로 변환
-        
-        // if (timeDifference > maxDuration) {
-        //     return '경매 진행 시간은 최대 30일을 초과할 수 없습니다.';
-        // }
-        
-        return null; // 유효한 경우
-    };
-
-    // 유효성 검사 함수
-    const validateForm = () => {
-        const newErrors = {};
-
-        // 필수 필드 검사
-        if (!formData.product_name?.trim()) {
-            newErrors.product_name = '상품명을 입력해주세요.';
-        }
-
-        if (!formData.origin?.trim()) {
-            newErrors.origin = '위치를 입력해주세요.';
-        }
-
-        if (!formData.auction_start_time?.trim()) {
-            newErrors.auction_start_time = '경매 시작 시간을 선택해주세요.';
-        } else if (!formData.auction_end_time?.trim()) {
-            newErrors.auction_end_time = '경매 종료 시간을 선택해주세요.';
-        } else {
-            // 시간 유효성 검사
-            const timeValidationError = validateTimes(formData.auction_start_time, formData.auction_end_time);
-            if (timeValidationError) {
-                newErrors.auction_start_time = timeValidationError;
-                newErrors.auction_end_time = timeValidationError;
-            }
-        }
-
-        if (!formData.expected_price || formData.expected_price <= 0) {
-            newErrors.expected_price = '최소 가격을 입력해주세요.';
-        }
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
     };
 
     const handleSubmit = async () => {
         if (isSubmitting) return;
 
-        // 유효성 검사
-        if (!validateForm()) {
+        // 유효성 검사 (분리된 함수 사용)
+        const validationErrors = validateProductForm(formData, imageFile);
+        
+        if (!isFormValid(validationErrors)) {
             console.log('정보 부족');
+            setErrors(validationErrors);
             setErrorOpen(true);
             return;
         }
@@ -137,19 +74,18 @@ export function Post() {
             // 모든 정보가 완성된 경우
             const submitData = {
                 image: imageFile,
-                imageUrl: selectedImage,
+                image_urls: selectedImage,
                 productInfo: formData
             };
 
             console.log('성공');
             console.log('제출 데이터:', submitData);
-            setOpen(true);
 
             // 여기에 실제 API 호출 로직 추가
             // await uploadProduct(submitData);
             
-            // 성공 시 다른 페이지로 이동하거나 성공 메시지 표시
-            // navigate('/success');
+            // 성공 시 성공 메시지 표시
+            setOpen(true);
 
         } catch (error) {
             console.error('업로드 실패:', error);
