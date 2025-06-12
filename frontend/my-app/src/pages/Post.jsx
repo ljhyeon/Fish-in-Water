@@ -13,12 +13,13 @@ export function Post() {
     const [selectedImage, setSelectedImage] = useState(null);
     const [imageFile, setImageFile] = useState(null);
     const [formData, setFormData] = useState({
-        name: '',
+        product_name: '',
         recommend: '',
-        location: '',
-        time: '',
-        min_price: 0,
-        description: ''
+        origin: '',
+        auction_start_time: '',
+        auction_end_time: '',
+        expected_price: 0,
+        additional_notes: ''
     });
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,34 +53,68 @@ export function Post() {
         setErrors(updatedErrors);
     };
 
+    // 시간 유효성 검사 함수
+    const validateTimes = (startTime, endTime) => {
+        const now = new Date();
+        const start = new Date(startTime);
+        const end = new Date(endTime);
+        
+        // 시작 시간이 현재 시간보다 이전인지 확인
+        if (start <= now) {
+            return '경매 시작 시간은 현재 시간보다 미래여야 합니다.';
+        }
+        
+        // 종료 시간이 시작 시간보다 이전인지 확인
+        if (end <= start) {
+            return '경매 시작 시간은 종료 시간보다 이전이어야 합니다.';
+        }
+        
+        // // 경매 기간이 너무 짧은지 확인 (최소 30분)
+        // const timeDifference = end.getTime() - start.getTime();
+        // const minDuration = 30 * 60 * 1000; // 30분을 밀리초로 변환
+        
+        // if (timeDifference < minDuration) {
+        //     return '경매 진행 시간은 최소 30분 이상이어야 합니다.';
+        // }
+        
+        // // 경매 기간이 너무 긴지 확인 (최대 30일)
+        // const maxDuration = 30 * 24 * 60 * 60 * 1000; // 30일을 밀리초로 변환
+        
+        // if (timeDifference > maxDuration) {
+        //     return '경매 진행 시간은 최대 30일을 초과할 수 없습니다.';
+        // }
+        
+        return null; // 유효한 경우
+    };
+
     // 유효성 검사 함수
     const validateForm = () => {
         const newErrors = {};
 
-        // 이미지 검사
-        if (!imageFile) {
-            newErrors.image = '상품 이미지를 선택해주세요.';
-        }
-
         // 필수 필드 검사
-        if (!formData.name?.trim()) {
-            newErrors.name = '상품명을 입력해주세요.';
+        if (!formData.product_name?.trim()) {
+            newErrors.product_name = '상품명을 입력해주세요.';
         }
 
-        if (!formData.location?.trim()) {
-            newErrors.location = '위치를 입력해주세요.';
+        if (!formData.origin?.trim()) {
+            newErrors.origin = '위치를 입력해주세요.';
         }
 
-        if (!formData.time?.trim()) {
-            newErrors.time = '시간을 입력해주세요.';
+        if (!formData.auction_start_time?.trim()) {
+            newErrors.auction_start_time = '경매 시작 시간을 선택해주세요.';
+        } else if (!formData.auction_end_time?.trim()) {
+            newErrors.auction_end_time = '경매 종료 시간을 선택해주세요.';
+        } else {
+            // 시간 유효성 검사
+            const timeValidationError = validateTimes(formData.auction_start_time, formData.auction_end_time);
+            if (timeValidationError) {
+                newErrors.auction_start_time = timeValidationError;
+                newErrors.auction_end_time = timeValidationError;
+            }
         }
 
-        if (!formData.min_price || formData.min_price <= 0) {
-            newErrors.min_price = '최소 가격을 입력해주세요.';
-        }
-
-        if (!formData.description?.trim()) {
-            newErrors.description = '상품 설명을 입력해주세요.';
+        if (!formData.expected_price || formData.expected_price <= 0) {
+            newErrors.expected_price = '최소 가격을 입력해주세요.';
         }
 
         setErrors(newErrors);

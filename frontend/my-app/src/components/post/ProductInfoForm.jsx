@@ -11,7 +11,7 @@ export function ProductInfoForm({
     errors = {}
 }) {
     const handleChange = (field) => (event) => {
-        const value = field === 'min_price' 
+        const value = field === 'expected_price' 
             ? parseInt(event.target.value.replace(/,/g, ''), 10) || 0
             : event.target.value;
         
@@ -31,10 +31,10 @@ export function ProductInfoForm({
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 3 }}>
                 <TextField
                     label="상품명"
-                    value={formData.name || ''}
-                    onChange={handleChange('name')}
-                    error={!!errors.name}
-                    helperText={errors.name}
+                    value={formData.product_name || ''}
+                    onChange={handleChange('product_name')}
+                    error={!!errors.product_name}
+                    helperText={errors.product_name}
                     variant="outlined"
                     fullWidth
                     sx={{ '& .MuiInputBase-input': { fontWeight: '600', fontSize: '1.25rem' } }}
@@ -45,10 +45,10 @@ export function ProductInfoForm({
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 3 }}>
                 <TextField
                     label="위치"
-                    value={formData.location || ''}
-                    onChange={handleChange('location')}
-                    error={!!errors.location}
-                    helperText={errors.location}
+                    value={formData.origin || ''}
+                    onChange={handleChange('origin')}
+                    error={!!errors.origin}
+                    helperText={errors.origin}
                     variant="outlined"
                     fullWidth
                     InputProps={{
@@ -58,15 +58,17 @@ export function ProductInfoForm({
                             </InputAdornment>
                         ),
                     }}
-                    placeholder="예: 제주시"
+                    placeholder="매물을 잡은 위치를 입력하세요"
                 />
                 
+                {/* 경매 시작 시간 */}
                 <TextField
-                    label="시간"
-                    value={formData.time || ''}
-                    onChange={handleChange('time')}
-                    error={!!errors.time}
-                    helperText={errors.time}
+                    label="경매 시작 시간"
+                    type="datetime-local"
+                    value={formData.auction_start_time || ''}
+                    onChange={handleChange('auction_start_time')}
+                    error={!!errors.auction_start_time}
+                    helperText={errors.auction_start_time}
                     variant="outlined"
                     fullWidth
                     InputProps={{
@@ -76,15 +78,39 @@ export function ProductInfoForm({
                             </InputAdornment>
                         ),
                     }}
-                    placeholder="예: 2100.12.34 05:00 ~ 07:00"
+                    InputLabelProps={{
+                        shrink: true,
+                    }}
+                />
+
+                {/* 경매 종료 시간 */}
+                <TextField
+                    label="경매 종료 시간"
+                    type="datetime-local"
+                    value={formData.auction_end_time || ''}
+                    onChange={handleChange('auction_end_time')}
+                    error={!!errors.auction_end_time}
+                    helperText={errors.auction_end_time}
+                    variant="outlined"
+                    fullWidth
+                    InputProps={{
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                <AccessAlarmOutlinedIcon sx={{ color: 'secondary.main' }} />
+                            </InputAdornment>
+                        ),
+                    }}
+                    InputLabelProps={{
+                        shrink: true,
+                    }}
                 />
                 
                 <TextField
                     label="최소 가격"
-                    value={formatPrice(formData.min_price)}
-                    onChange={handleChange('min_price')}
-                    error={!!errors.min_price}
-                    helperText={errors.min_price}
+                    value={formatPrice(formData.expected_price)}
+                    onChange={handleChange('expected_price')}
+                    error={!!errors.expected_price}
+                    helperText={errors.expected_price}
                     variant="outlined"
                     fullWidth
                     InputProps={{
@@ -95,7 +121,7 @@ export function ProductInfoForm({
                         ),
                         endAdornment: <InputAdornment position="end">원</InputAdornment>,
                     }}
-                    placeholder="예: 10,000"
+                    placeholder="최소 입찰 금액을 입력하세요"
                 />
                 
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -112,10 +138,10 @@ export function ProductInfoForm({
                     매물 소개
                 </Typography>
                 <TextField
-                    value={formData.description || ''}
-                    onChange={handleChange('description')}
-                    error={!!errors.description}
-                    helperText={errors.description}
+                    value={formData.additional_notes || ''}
+                    onChange={handleChange('additional_notes')}
+                    error={!!errors.additional_notes}
+                    helperText={errors.additional_notes}
                     variant="outlined"
                     fullWidth
                     multiline
