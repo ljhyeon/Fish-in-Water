@@ -28,7 +28,8 @@ function formatAuctionTime(start, end) {
 }
 
 export function ProductInfoReadOnly({ 
-    dummyData
+    dummyData,
+    type=1,
 }) {
     return (
         <Box sx={{ p: '20px' }}>
@@ -37,7 +38,7 @@ export function ProductInfoReadOnly({
                     variant="h5" 
                     sx={{ fontWeight: '800',  mb: 0.5 }}
                 >
-                    {dummyData.product_name}
+                    {dummyData.name}
                 </Typography>
                 <Typography 
                     variant="overline" 
@@ -65,7 +66,10 @@ export function ProductInfoReadOnly({
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <PaymentsOutlinedIcon sx={{ color: 'secondary.main' }} />
                     <Typography variant="body2" sx={{ color: 'grey.700' }}>
-                        {dummyData.expected_price.toLocaleString('ko-KR')} 원
+                        {type === 1 ? 
+                            `${dummyData.startPrice?.toLocaleString('ko-KR') || 0} 원` : 
+                            `${dummyData.finalPrice?.toLocaleString('ko-KR') || dummyData.currentPrice?.toLocaleString('ko-KR') || 0} 원`
+                        }
                     </Typography>
                 </Box>
                 
@@ -79,7 +83,7 @@ export function ProductInfoReadOnly({
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2, }}>
                 <Typography variant="Body2" sx={{fontWeight: 800}}>매물 소개</Typography>
-                <Typography variant="overlined">{dummyData.additional_notes}</Typography>
+                <Typography variant="overlined">{dummyData.description}</Typography>
             </Box>
         </Box>
     );

@@ -99,7 +99,7 @@ function AppContent() {
         } 
       />
       <Route 
-        path="/post/:id" 
+        path="/post" 
         element={
           <ProtectedRoute>
             <Post />
