@@ -48,6 +48,11 @@ export function Info2() {
 
     const [open, setOpen] = useState(false);
 
+    const shouldShowButton = dummyData.finalPrice && (
+        isUserSeller || // 판매자면 항상 보여줌 (낙찰자 정보 확인)
+        (!isUserSeller && dummyData.status.consumer !== "낙찰/결제완료") // 구매자면 결제완료가 아닐 때만
+    );
+
 
     return (
         <>
@@ -63,13 +68,14 @@ export function Info2() {
                 <ProductInfoReadOnly dummyData={dummyData} type={2} />
                 
                 {/* 하단 버튼 */}
-                {dummyData.finalPrice && 
+                {shouldShowButton && (
                     <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', }}>
                         <Button variant="contained" onClick={handleButton}>
                             {isUserSeller ? "낙찰자 정보 확인" : "결제"}
                         </Button>
                     </Box>
-                }
+                )}
+
             </Box>
             <InfoDialog
                 open={open}

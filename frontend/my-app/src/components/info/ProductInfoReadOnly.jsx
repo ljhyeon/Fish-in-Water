@@ -68,7 +68,7 @@ export function ProductInfoReadOnly({
                     <Typography variant="body2" sx={{ color: 'grey.700' }}>
                         {type === 1 ? 
                             `${dummyData.startPrice?.toLocaleString('ko-KR') || 0} 원` : 
-                            `${dummyData.finalPrice?.toLocaleString('ko-KR') || dummyData.currentPrice?.toLocaleString('ko-KR') || 0} 원`
+                            `${dummyData.finalPrice?.toLocaleString('ko-KR') || dummyData.currentPrice?.toLocaleString('ko-KR') || dummyData.startPrice?.toLocaleString('ko-KR') || 0} 원` // info2 금액 표시 기준 변경되면 변경 필요
                         }
                     </Typography>
                 </Box>
@@ -76,7 +76,7 @@ export function ProductInfoReadOnly({
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <PersonOutlineOutlinedIcon sx={{ color: 'secondary.main' }} />
                     <Typography variant="body2" sx={{ color: 'grey.700' }}>
-                        {dummyData.seller}
+                        {dummyData.seller.name}
                     </Typography>
                 </Box>
             </Box>
