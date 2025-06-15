@@ -1,65 +1,50 @@
-import React from 'react';
-import ListItem from '@mui/material/ListItem';
-import ListItemAvatar from '@mui/material/ListItemAvatar';
-import ListItemText from '@mui/material/ListItemText';
-import Avatar from '@mui/material/Avatar';
-import Typography from '@mui/material/Typography';
-import Box from '@mui/material/Box';
+import { ListItem, ListItemText, ListItemAvatar, Avatar, Typography, Box } from '@mui/material';
 import ColoredChip from './ColoredChip';
 
-const getStatusColor = (status) => {
-    switch (status) {
-        case '낙찰/결제 대기중':
-            return { color: 'secondary', variant: 'main' };
-        case '낙찰/결제 완료':
-            return { color: 'secondary', variant: 'light' };
-        case '유찰':
-            return { color: 'primary', variant: 'main' };
-        case '진행중':
-            return { color: 'primary', variant: 'dark' };
-        default:
-            return { color: 'default', variant: 'main' };
-    }
-};
+export default function AuctionItem({ item, isSupplier = false }) {
+    const getStatusColor = (status) => {
+        switch (status) {
+            case '진행중':
+                return { color: 'primary', variant: 'dark' };
+            case '낙찰/결제대기중':
+            case '정산대기중':
+                return { color: 'secondary', variant: 'main' };
+            case '낙찰/결제완료':
+            case '완료':
+                return { color: 'secondary', variant: 'light' };
+            case '유찰':
+                return { color: 'primary', variant: 'main' };
+            default:
+                return { color: 'default', variant: 'main' };
+        }
+    };
 
-const AuctionItem = ({ item }) => {
+    const status = isSupplier ? item.status.supplier : item.status.consumer;
+    const statusColor = getStatusColor(status);
+
     return (
-        <ListItem alignItems="flex-start">
+        <ListItem alignItems="flex-start" sx={{ px: 2 }}>
             <ListItemAvatar>
-                <Avatar 
-                    alt={item.name} 
-                    src={item.image}
-                    sx={{ width: 80, height: 80 }}
-                />
+                <Avatar alt={item.name} src={item.image} sx={{ width: 80, height: 80 }} />
             </ListItemAvatar>
             <ListItemText
                 primary={
-                    <Typography variant="h6" component="div" sx={{ mb: 0.5, ml: 3 }}>
-                        {item.name}
-                    </Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, ml: 3 }}>
+                        <Typography variant="h6">{item.name}</Typography>
+                        <ColoredChip 
+                            label={status} 
+                            color={statusColor.color}
+                            colorVariant={statusColor.variant}
+                            size="small"
+                        />
+                    </Box>
                 }
                 secondary={
-                    <React.Fragment>
-                        <Typography
-                            component="span"
-                            variant="body2"
-                            sx={{ color: 'text.primary', display: 'block', mb: 1, ml: 3 }}
-                        >
-                            {item.origin}
-                        </Typography>
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', mt: -5 }}>
-                            <ColoredChip 
-                                label={item.status}
-                                color={getStatusColor(item.status).color}
-                                colorVariant={getStatusColor(item.status).variant}
-                                size="small"
-                            />
-                        </Box>
-                    </React.Fragment>
+                    <Typography variant="body2" color="text.secondary" sx={{ ml: 3 }}>
+                        {item.origin}
+                    </Typography>
                 }
             />
         </ListItem>
     );
-};
-
-export default AuctionItem; 
+}

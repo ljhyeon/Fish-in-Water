@@ -8,8 +8,10 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import List from '@mui/material/List';
 import Divider from '@mui/material/Divider';
+import Button from '@mui/material/Button';
 import { testItems } from '../data/testItems';
 import AuctionItem from '../components/AuctionItem';
+import FormDialog from '../components/FormDialog';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -48,9 +50,16 @@ export function Home3() {
     const theme = useTheme();
     const [value, setValue] = React.useState(0);
     const [hasItems, setHasItems] = React.useState(true);
+    const [isSeller, setIsSeller] = React.useState(false);
+    const [openSellerForm, setOpenSellerForm] = React.useState(false);
 
     const handleChange = (event, newValue) => {
         setValue(newValue);
+    };
+
+    const handleSellerSubmit = (formData) => {
+        console.log('판매자 정보:', formData);
+        setIsSeller(true);
     };
 
     const renderContent = () => {
@@ -69,7 +78,84 @@ export function Home3() {
             <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
                 {testItems.map((item, index) => (
                     <React.Fragment key={item.id}>
-                        <AuctionItem item={item} />
+                        <AuctionItem item={item} isSupplier={false} />
+                        {index < testItems.length - 1 && <Divider variant="inset" component="li" />}
+                    </React.Fragment>
+                ))}
+            </List>
+        );
+    };
+
+    const renderSellerContent = () => {
+        if (!isSeller) {
+            return (
+                <Box sx={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    justifyContent: 'flex-start', 
+                    alignItems: 'center', 
+                    height: '300px',
+                    pt: 8,
+                    gap: 4
+                }}>
+                    <img src="/Person.svg" style={{ width: '250px', height: 'auto' }} />
+                    <Typography variant="h6" color="text.secondary" sx={{ mb: -6 }}>
+                        판매자 등록 후 매물 등록이 가능합니다.
+                    </Typography>
+                    <Button 
+                        variant="contained" 
+                        color="primary"
+                        size="large"
+                        onClick={() => setOpenSellerForm(true)}
+                        sx={{ 
+                            width: '200px',
+                            fontSize: '1.2rem',
+                            mt: 4,
+                            py: 2
+                        }}
+                    >
+                        판매자 등록하기
+                    </Button>
+                    <FormDialog
+                        open={openSellerForm}
+                        onClose={() => setOpenSellerForm(false)}
+                        onSubmit={handleSellerSubmit}
+                        title="판매자 등록"
+                        hasClose={true}
+                        submitText="등록하기"
+                        fields={[
+                            {
+                                name: 'businessName',
+                                label: '사업자명',
+                                required: true,
+                                variant: 'outlined'
+                            },
+                            {
+                                name: 'businessLicense',
+                                label: '사업자 등록증',
+                                type: 'file',
+                                required: true,
+                                variant: 'outlined'
+                            }
+                        ]}
+                        disableBackdropClose={true}
+                        buttonProps={{
+                            sx: {
+                                minWidth: '120px',
+                                height: '40px',
+                                fontSize: '1.1rem'
+                            }
+                        }}
+                    />
+                </Box>
+            );
+        }
+
+        return (
+            <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
+                {testItems.map((item, index) => (
+                    <React.Fragment key={item.id}>
+                        <AuctionItem item={item} isSupplier={true} />
                         {index < testItems.length - 1 && <Divider variant="inset" component="li" />}
                     </React.Fragment>
                 ))}
@@ -96,7 +182,7 @@ export function Home3() {
                 {renderContent()}
             </TabPanel>
             <TabPanel value={value} index={1} dir={theme.direction}>
-                내가 개설한 경매
+                {renderSellerContent()}
             </TabPanel>
         </Box>
     )
