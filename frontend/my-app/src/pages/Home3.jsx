@@ -9,6 +9,7 @@ import Box from '@mui/material/Box';
 import List from '@mui/material/List';
 import Divider from '@mui/material/Divider';
 import Button from '@mui/material/Button';
+import { useNavigate } from 'react-router-dom';
 import { testItems } from '../data/testItems';
 import AuctionItem from '../components/AuctionItem';
 import FormDialog from '../components/FormDialog';
@@ -48,6 +49,7 @@ function a11yProps(index) {
 
 export function Home3() {
     const theme = useTheme();
+    const navigate = useNavigate();
     const [value, setValue] = React.useState(0);
     const [hasItems, setHasItems] = React.useState(true);
     const [isSeller, setIsSeller] = React.useState(false);
@@ -99,19 +101,18 @@ export function Home3() {
                     gap: 4
                 }}>
                     <img src="/Person.svg" style={{ width: '250px', height: 'auto' }} />
-                    <Typography variant="h6" color="text.secondary" sx={{ mb: -6 }}>
+                    <Typography variant="h6" color="text.secondary" sx={{ mb: -3 }}>
                         판매자 등록 후 매물 등록이 가능합니다.
                     </Typography>
-                    <Button 
-                        variant="contained" 
+                    <Button
+                        variant="contained"
                         color="primary"
                         size="large"
                         onClick={() => setOpenSellerForm(true)}
-                        sx={{ 
+                        sx={{
                             width: '200px',
                             fontSize: '1.2rem',
-                            mt: 4,
-                            py: 2
+                            py: 2,
                         }}
                     >
                         판매자 등록하기
@@ -152,14 +153,30 @@ export function Home3() {
         }
 
         return (
-            <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
-                {testItems.map((item, index) => (
-                    <React.Fragment key={item.id}>
-                        <AuctionItem item={item} isSupplier={true} />
-                        {index < testItems.length - 1 && <Divider variant="inset" component="li" />}
-                    </React.Fragment>
-                ))}
-            </List>
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
+                    {testItems.map((item, index) => (
+                        <React.Fragment key={item.id}>
+                            <AuctionItem item={item} isSupplier={true} />
+                            {index < testItems.length - 1 && <Divider variant="inset" component="li" />}
+                        </React.Fragment>
+                    ))}
+                </List>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    size="large"
+                    onClick={() => navigate('/info2')}
+                    sx={{
+                        width: '200px',
+                        fontSize: '1.2rem',
+                        py: 2,
+                        mt: 2
+                    }}
+                >
+                    매물 추가하기
+                </Button>
+            </Box>
         );
     };
 
