@@ -66,11 +66,9 @@ export function ProductInfoReadOnly({
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <PaymentsOutlinedIcon sx={{ color: 'secondary.main' }} />
                     <Typography variant="body2" sx={{ color: 'grey.700' }}>
-                        { type === 1 ? (
-                            `${dummyData.startPrice.toLocaleString('ko-KR')} 원`
-                        ) : (
-                            `${dummyData.finalPrice.toLocaleString('ko-KR')} 원`
-                        )
+                        {type === 1 ? 
+                            `${dummyData.startPrice?.toLocaleString('ko-KR') || 0} 원` : 
+                            `${dummyData.finalPrice?.toLocaleString('ko-KR') || dummyData.currentPrice?.toLocaleString('ko-KR') || 0} 원`
                         }
                     </Typography>
                 </Box>
