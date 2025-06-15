@@ -9,28 +9,45 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}']
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,json,webp,woff,woff2,ttf,eot,otf}'],
       },
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      includeAssets: ['logo.svg'],
       manifest: {
-        name: 'My App',
-        short_name: 'MyApp',
-        description: 'My React PWA App',
+        name: '물만난시장',
+        short_name: '물만난시장',
+        description: '시장이 물을 만났어요~',
         theme_color: '#ffffff',
         background_color: '#ffffff',
         display: 'standalone',
+        orientation: 'portrait-primary',
+        start_url: '.',
+        categories: ['productivity', 'utilities'],
         icons: [
           {
-            src: 'pwa-192x192.png',
+            src: 'android/android-launchericon-192-192.png',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any',
           },
           {
-            src: 'pwa-512x512.png',
+            src: 'android/android-launchericon-512-512.png',
             sizes: '512x512',
-            type: 'image/png'
-          }
-        ]
+            type: 'image/png',
+            purpose: 'any',
+          },
+          {
+            src: 'android/android-launchericon-192-192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
+          {
+            src: 'android/android-launchericon-512-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
+        ],
       },
       devOptions: {
         enabled: true,

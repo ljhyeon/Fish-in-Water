@@ -73,10 +73,10 @@ export function Layout({ description, children }) {
 
             {/* 메인 컨텐츠 영역 */}
             <Box sx={{ 
-                flex: 1, 
                 pt: '102px', // 상단바 높이(100px) + 여유공간(16px)
                 pb: '56px',  // 하단 네비게이션 높이
-                overflow: 'auto' // 스크롤 가능
+                overflow: 'auto', // 스크롤 가능
+                width: '100vw'
             }}>
                 {children}
             </Box>
