@@ -16,12 +16,12 @@ export function Post() {
     const [imageFile, setImageFile] = useState(null);
     const [formData, setFormData] = useState({
         seller_id: 1, // TODO: 현재 등록하는 회원의 id로 지정
-        product_name: '',
+        name: '',
         origin: '',
         auction_start_time: '',
         auction_end_time: '',
-        expected_price: 0,
-        additional_notes: ''
+        startPrice: 0,
+        description: ''
     });
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -73,8 +73,7 @@ export function Post() {
         try {
             // 모든 정보가 완성된 경우
             const submitData = {
-                image: imageFile,
-                image_urls: selectedImage,
+                image: selectedImage,
                 productInfo: formData
             };
 
