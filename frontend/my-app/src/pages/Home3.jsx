@@ -166,7 +166,7 @@ export function Home3() {
                     variant="contained"
                     color="primary"
                     size="large"
-                    onClick={() => navigate('/info2')}
+                    onClick={() => navigate('/post/:id')}
                     sx={{
                         width: '200px',
                         fontSize: '1.2rem',
