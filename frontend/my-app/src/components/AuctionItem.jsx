@@ -1,7 +1,7 @@
 import { ListItem, ListItemText, ListItemAvatar, Avatar, Typography, Box } from '@mui/material';
 import ColoredChip from './ColoredChip';
 
-export default function AuctionItem({ item, isSupplier = false, onClick }) {
+export default function AuctionItem({ item, isSupplier = false, onClick, pageType = 'home3' }) {
     const getStatusColor = (status) => {
         switch (status) {
             case '진행중':
@@ -22,6 +22,33 @@ export default function AuctionItem({ item, isSupplier = false, onClick }) {
     const status = isSupplier ? item.status.supplier : item.status.consumer;
     const statusColor = getStatusColor(status);
 
+    const renderContent = () => {
+        switch (pageType) {
+            case 'home1':
+                return (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, ml: 3 }}>
+                        <Typography variant="h6">{item.name}</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                            {item.recommend}
+                        </Typography>
+                    </Box>
+                );
+            case 'home3':
+            default:
+                return (
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, ml: 3 }}>
+                        <Typography variant="h6">{item.name}</Typography>
+                        <ColoredChip 
+                            label={status} 
+                            color={statusColor.color}
+                            colorVariant={statusColor.variant}
+                            size="small"
+                        />
+                    </Box>
+                );
+        }
+    };
+
     return (
         <ListItem 
             alignItems="flex-start" 
@@ -38,17 +65,7 @@ export default function AuctionItem({ item, isSupplier = false, onClick }) {
                 <Avatar alt={item.name} src={item.image} sx={{ width: 80, height: 80 }} />
             </ListItemAvatar>
             <ListItemText
-                primary={
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, ml: 3 }}>
-                        <Typography variant="h6">{item.name}</Typography>
-                        <ColoredChip 
-                            label={status} 
-                            color={statusColor.color}
-                            colorVariant={statusColor.variant}
-                            size="small"
-                        />
-                    </Box>
-                }
+                primary={renderContent()}
                 secondary={
                     <Typography variant="body2" color="text.secondary" sx={{ ml: 3 }}>
                         {item.origin}
