@@ -161,7 +161,11 @@ export function Home3() {
                 <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
                     {testItems.map((item, index) => (
                         <React.Fragment key={item.id}>
-                            <AuctionItem item={item} isSupplier={true} />
+                            <AuctionItem 
+                                item={item} 
+                                isSupplier={true} 
+                                onClick={() => navigate(`/info2/${item.id}`)}
+                            />
                             {index < testItems.length - 1 && <Divider variant="inset" component="li" />}
                         </React.Fragment>
                     ))}
