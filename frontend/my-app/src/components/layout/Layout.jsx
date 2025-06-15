@@ -62,7 +62,7 @@ export function Layout({ description, children }) {
     ];
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', minWidth: '100vw' }}>
             {/* 상단바 영역 - 고정 위치 */}
             <AppBar position="fixed">
                 <Toolbar sx={{ display: 'grid', justifyItems: 'center', minHeight: '100px !important', }}>
