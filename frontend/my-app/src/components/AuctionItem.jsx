@@ -1,7 +1,7 @@
 import { ListItem, ListItemText, ListItemAvatar, Avatar, Typography, Box } from '@mui/material';
 import ColoredChip from './ColoredChip';
 
-export default function AuctionItem({ item, isSupplier = false }) {
+export default function AuctionItem({ item, isSupplier = false, onClick }) {
     const getStatusColor = (status) => {
         switch (status) {
             case '진행중':
@@ -23,7 +23,17 @@ export default function AuctionItem({ item, isSupplier = false }) {
     const statusColor = getStatusColor(status);
 
     return (
-        <ListItem alignItems="flex-start" sx={{ px: 2 }}>
+        <ListItem 
+            alignItems="flex-start" 
+            sx={{ 
+                px: 2,
+                cursor: 'pointer',
+                '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                }
+            }}
+            onClick={onClick}
+        >
             <ListItemAvatar>
                 <Avatar alt={item.name} src={item.image} sx={{ width: 80, height: 80 }} />
             </ListItemAvatar>
