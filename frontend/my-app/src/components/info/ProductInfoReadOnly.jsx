@@ -28,7 +28,8 @@ function formatAuctionTime(start, end) {
 }
 
 export function ProductInfoReadOnly({ 
-    dummyData
+    dummyData,
+    type=1,
 }) {
     return (
         <Box sx={{ p: '20px' }}>
@@ -65,7 +66,12 @@ export function ProductInfoReadOnly({
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <PaymentsOutlinedIcon sx={{ color: 'secondary.main' }} />
                     <Typography variant="body2" sx={{ color: 'grey.700' }}>
-                        {dummyData.startPrice.toLocaleString('ko-KR')} 원
+                        { type === 1 ? (
+                            `${dummyData.startPrice.toLocaleString('ko-KR')} 원`
+                        ) : (
+                            `${dummyData.finalPrice.toLocaleString('ko-KR')} 원`
+                        )
+                        }
                     </Typography>
                 </Box>
                 

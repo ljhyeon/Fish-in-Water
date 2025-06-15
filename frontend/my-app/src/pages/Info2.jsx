@@ -60,7 +60,7 @@ export function Info2() {
                 />
     
                 {/* 매물 정보 */}
-                <ProductInfoReadOnly dummyData={dummyData} />
+                <ProductInfoReadOnly dummyData={dummyData} type={2} />
                 
                 {/* 하단 버튼 */}
                 {dummyData.finalPrice && 
