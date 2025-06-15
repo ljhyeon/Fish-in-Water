@@ -1,7 +1,7 @@
 import { ListItem, ListItemText, ListItemAvatar, Avatar, Typography, Box } from '@mui/material';
 import ColoredChip from './ColoredChip';
 
-export default function AuctionItem({ item, isSupplier = false }) {
+export default function AuctionItem({ item, isSupplier = false, onClick, pageType = 'home3' }) {
     const getStatusColor = (status) => {
         switch (status) {
             case '진행중':
@@ -22,13 +22,20 @@ export default function AuctionItem({ item, isSupplier = false }) {
     const status = isSupplier ? item.status.supplier : item.status.consumer;
     const statusColor = getStatusColor(status);
 
-    return (
-        <ListItem alignItems="flex-start" sx={{ px: 2 }}>
-            <ListItemAvatar>
-                <Avatar alt={item.name} src={item.image} sx={{ width: 80, height: 80 }} />
-            </ListItemAvatar>
-            <ListItemText
-                primary={
+    const renderContent = () => {
+        switch (pageType) {
+            case 'home1':
+                return (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, ml: 3 }}>
+                        <Typography variant="h6">{item.name}</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                            {item.recommend}
+                        </Typography>
+                    </Box>
+                );
+            case 'home3':
+            default:
+                return (
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, ml: 3 }}>
                         <Typography variant="h6">{item.name}</Typography>
                         <ColoredChip 
@@ -38,7 +45,27 @@ export default function AuctionItem({ item, isSupplier = false }) {
                             size="small"
                         />
                     </Box>
+                );
+        }
+    };
+
+    return (
+        <ListItem 
+            alignItems="flex-start" 
+            sx={{ 
+                px: 2,
+                cursor: 'pointer',
+                '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)'
                 }
+            }}
+            onClick={onClick}
+        >
+            <ListItemAvatar>
+                <Avatar alt={item.name} src={item.image} sx={{ width: 80, height: 80 }} />
+            </ListItemAvatar>
+            <ListItemText
+                primary={renderContent()}
                 secondary={
                     <Typography variant="body2" color="text.secondary" sx={{ ml: 3 }}>
                         {item.origin}

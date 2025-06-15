@@ -80,7 +80,11 @@ export function Home3() {
             <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
                 {testItems.map((item, index) => (
                     <React.Fragment key={item.id}>
-                        <AuctionItem item={item} isSupplier={false} />
+                        <AuctionItem 
+                            item={item} 
+                            isSupplier={false} 
+                            onClick={() => navigate(`/info2/${item.id}`)}
+                        />
                         {index < testItems.length - 1 && <Divider variant="inset" component="li" />}
                     </React.Fragment>
                 ))}
@@ -157,7 +161,11 @@ export function Home3() {
                 <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
                     {testItems.map((item, index) => (
                         <React.Fragment key={item.id}>
-                            <AuctionItem item={item} isSupplier={true} />
+                            <AuctionItem 
+                                item={item} 
+                                isSupplier={true} 
+                                onClick={() => navigate(`/info2/${item.id}`)}
+                            />
                             {index < testItems.length - 1 && <Divider variant="inset" component="li" />}
                         </React.Fragment>
                     ))}
@@ -166,7 +174,7 @@ export function Home3() {
                     variant="contained"
                     color="primary"
                     size="large"
-                    onClick={() => navigate('/info2')}
+                    onClick={() => navigate('/post/:id')}
                     sx={{
                         width: '200px',
                         fontSize: '1.2rem',
