@@ -11,10 +11,11 @@ import { Login } from './pages/Login';
 import { Info1 } from './pages/Info1';
 import { Info2 } from './pages/Info2';
 import { Post } from './pages/Post';
+import TestDataPage from './pages/TestDataPage';
 import theme from './theme';
 
 // Layout이 필요없는 페이지들
-const noLayoutPages = ['/login'];
+const noLayoutPages = ['/login', '/test-data'];
 
 // 페이지별 description 정의
 const pageDescriptions = {
@@ -58,6 +59,7 @@ function AppContent() {
     <Routes>
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/test-data" element={<TestDataPage />} />
       <Route 
         path="/home" 
         element={
