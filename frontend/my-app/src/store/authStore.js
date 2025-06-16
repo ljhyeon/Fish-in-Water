@@ -8,7 +8,7 @@ const useAuthStore = create(
       user: null,
       userInfo: null, // Firestore 사용자 정보 추가
       isAuthenticated: false,
-      loading: false,
+      loading: false, // 초기 로딩 상태는 false로 설정
       error: null,
 
       // 액션들
@@ -72,6 +72,14 @@ const useAuthStore = create(
         userInfo: state.userInfo, // userInfo도 영구 저장
         isAuthenticated: state.isAuthenticated 
       }), // user, userInfo, isAuthenticated만 영구 저장
+      
+      // 복원 시 isAuthenticated 상태 자동 설정
+      onRehydrateStorage: () => (state) => {
+        if (state && state.user && state.userInfo) {
+          state.isAuthenticated = true;
+          console.log('🔄 Zustand 상태 복원 완료 - 인증된 사용자:', state.user.email);
+        }
+      },
     }
   )
 );

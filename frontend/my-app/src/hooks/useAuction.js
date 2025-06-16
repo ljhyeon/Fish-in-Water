@@ -155,7 +155,7 @@ export const useLiveAuction = (auctionId) => {
       throw new Error('경매 정보를 불러올 수 없습니다.');
     }
 
-    if (amount <= liveData.current_price) {
+    if (amount <= liveData.currentPrice) {
       throw new Error('입찰 금액이 현재 최고가보다 낮습니다.');
     }
 
@@ -179,7 +179,7 @@ export const useLiveAuction = (auctionId) => {
     bidding,
     bid,
     isActive: !!liveData,
-    currentPrice: liveData?.current_price || 0,
+    currentPrice: liveData?.currentPrice || 0,
     lastBidderId: liveData?.last_bidder_id || null,
     isMyBid: liveData?.last_bidder_id === user?.uid
   };

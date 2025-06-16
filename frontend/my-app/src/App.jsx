@@ -114,7 +114,8 @@ function AppContent() {
   if (shouldShowLayout) {
     return (
       <Layout description={currentDescription}>
-        <Container disableGutters>
+        // 컨테이너 높이 일괄적으로 100% 적용용
+        <Container disableGutters sx={{height: '100%'}}>
           {content}
         </Container>
       </Layout>

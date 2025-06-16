@@ -14,6 +14,7 @@ import {
 import { ref, set, get, onValue, off, serverTimestamp as rtdbServerTimestamp } from 'firebase/database';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, rtdb, storage } from '../firebase';
+import { getConsumerStatus, getSupplierStatus, calculateAuctionStatus } from '../utils/statusUtils';
 
 /**
  * 새 경매 생성
@@ -31,33 +32,49 @@ export const createAuction = async (auctionData, imageFile = null, sellerId = nu
       throw new Error('판매자 ID가 필요합니다.');
     }
     
-    // 이미지 업로드 (파일이 제공된 경우)
+    // 이미지 업로드 (임시로 비활성화 - CORS 에러 때문에)
     if (imageFile) {
-      const fileName = `auction_images/${finalSellerId}_${Date.now()}.${imageFile.name.split('.').pop()}`;
-      const imageRef = storageRef(storage, fileName);
-      const uploadResult = await uploadBytes(imageRef, imageFile);
-      imageUrl = await getDownloadURL(uploadResult.ref);
+      // TODO: Firebase Storage 업로드 기능은 나중에 활성화
+      // const fileName = `auction_images/${finalSellerId}_${Date.now()}.${imageFile.name.split('.').pop()}`;
+      // const imageRef = storageRef(storage, fileName);
+      // const uploadResult = await uploadBytes(imageRef, imageFile);
+      // imageUrl = await getDownloadURL(uploadResult.ref);
+      
+      // 임시로 기본 이미지 URL 사용
+      imageUrl = '/fish1.jpg'; // 또는 다른 기본 이미지
+      console.log('이미지 파일이 선택되었지만 Firebase 업로드는 건너뜀:', imageFile.name);
     }
     
-    // 경매 데이터 구성
+    // 시간 데이터 변환 (ISO 문자열을 Timestamp로)
+    const startTime = auctionData.auction_start_time || auctionData.start_time;
+    const endTime = auctionData.auction_end_time || auctionData.end_time;
+    
+    // 경매 데이터 구성 (testItems 표준 필드명 사용)
     const auction = {
       name: auctionData.name,
       description: auctionData.description,
-      image_url: imageUrl,
-      location: auctionData.location,
-      seller_id: finalSellerId,
-      status: auctionData.status || 'PENDING', // PENDING, ACTIVE, FINISHED
-      start_time: auctionData.start_time,
-      end_time: auctionData.end_time,
-      starting_price: auctionData.starting_price,
-      final_price: auctionData.final_price || null,
+      image: imageUrl,
+      origin: auctionData.origin || auctionData.location,
+      seller: {
+        id: finalSellerId,
+        name: auctionData.seller_name || auctionData.seller?.name,
+        business_license: auctionData.business_license || auctionData.seller?.business_license
+      },
+      status: auctionData.status || 'PENDING', // PENDING, ACTIVE, FINISHED, NO_BID
+      auction_start_time: startTime,
+      auction_end_time: endTime,
+      startPrice: auctionData.startPrice || auctionData.starting_price,
+      currentPrice: auctionData.currentPrice || auctionData.current_price || auctionData.startPrice || auctionData.starting_price,
+      finalPrice: auctionData.finalPrice || auctionData.final_price || null,
       winner_id: auctionData.winner_id || null,
+      recommend: auctionData.recommend || auctionData.recommendation,
+      is_payment_completed: false, // 결제 완료 여부
+      is_settlement_completed: false, // 정산 완료 여부
       created_at: serverTimestamp()
     };
 
     // 선택적 필드들 추가 (있는 경우에만)
     if (auctionData.species) auction.species = auctionData.species;
-    if (auctionData.seller_name) auction.seller_name = auctionData.seller_name;
     if (auctionData.quantity) auction.quantity = auctionData.quantity;
     if (auctionData.unit) auction.unit = auctionData.unit;
     if (auctionData.category) auction.category = auctionData.category;
@@ -75,11 +92,12 @@ export const createAuction = async (auctionData, imageFile = null, sellerId = nu
 
 /**
  * 경매 목록 조회
- * @param {string} status - 경매 상태 ('PENDING', 'ACTIVE', 'FINISHED', 'ALL')
+ * @param {string} status - 경매 상태 ('PENDING', 'ACTIVE', 'FINISHED', 'NO_BID', 'ALL')
  * @param {number} limitCount - 조회할 개수
+ * @param {string} userType - 사용자 타입 ('consumer', 'supplier')
  * @returns {Array} 경매 목록
  */
-export const getAuctions = async (status = 'ALL', limitCount = 50) => {
+export const getAuctions = async (status = 'ALL', limitCount = 50, userType = null) => {
   try {
     const auctionsRef = collection(db, 'auctions');
     let auctionQuery;
@@ -103,9 +121,29 @@ export const getAuctions = async (status = 'ALL', limitCount = 50) => {
     const auctions = [];
     
     querySnapshot.forEach((doc) => {
+      const auctionData = doc.data();
+      const hasWinner = auctionData.winner_id && auctionData.winner_id !== null;
+      
+      // 사용자 타입에 따른 상태 텍스트 추가
+      let displayStatus = auctionData.status;
+      if (userType === 'consumer') {
+        displayStatus = getConsumerStatus(
+          auctionData.status, 
+          hasWinner, 
+          auctionData.is_payment_completed
+        );
+      } else if (userType === 'supplier') {
+        displayStatus = getSupplierStatus(
+          auctionData.status, 
+          hasWinner, 
+          auctionData.is_settlement_completed
+        );
+      }
+      
       auctions.push({
         id: doc.id,
-        ...doc.data()
+        ...auctionData,
+        displayStatus
       });
     });
     
@@ -119,17 +157,38 @@ export const getAuctions = async (status = 'ALL', limitCount = 50) => {
 /**
  * 특정 경매 정보 조회
  * @param {string} auctionId - 경매 ID
+ * @param {string} userType - 사용자 타입 ('consumer', 'supplier')
  * @returns {Object|null} 경매 정보
  */
-export const getAuction = async (auctionId) => {
+export const getAuction = async (auctionId, userType = null) => {
   try {
     const auctionRef = doc(db, 'auctions', auctionId);
     const auctionSnap = await getDoc(auctionRef);
     
     if (auctionSnap.exists()) {
+      const auctionData = auctionSnap.data();
+      const hasWinner = auctionData.winner_id && auctionData.winner_id !== null;
+      
+      // 사용자 타입에 따른 상태 텍스트 추가
+      let displayStatus = auctionData.status;
+      if (userType === 'consumer') {
+        displayStatus = getConsumerStatus(
+          auctionData.status, 
+          hasWinner, 
+          auctionData.is_payment_completed
+        );
+      } else if (userType === 'supplier') {
+        displayStatus = getSupplierStatus(
+          auctionData.status, 
+          hasWinner, 
+          auctionData.is_settlement_completed
+        );
+      }
+      
       return {
         id: auctionSnap.id,
-        ...auctionSnap.data()
+        ...auctionData,
+        displayStatus
       };
     } else {
       return null;
@@ -144,9 +203,10 @@ export const getAuction = async (auctionId) => {
  * 사용자별 경매 목록 조회
  * @param {string} userId - 사용자 UID
  * @param {string} type - 'seller' (내가 개설한) 또는 'bidder' (내가 참여한)
+ * @param {string} userType - 사용자 타입 ('consumer', 'supplier')
  * @returns {Array} 경매 목록
  */
-export const getUserAuctions = async (userId, type = 'seller') => {
+export const getUserAuctions = async (userId, type = 'seller', userType = null) => {
   try {
     const auctionsRef = collection(db, 'auctions');
     let auctionQuery;
@@ -154,7 +214,7 @@ export const getUserAuctions = async (userId, type = 'seller') => {
     if (type === 'seller') {
       auctionQuery = query(
         auctionsRef,
-        where('seller_id', '==', userId),
+        where('seller.id', '==', userId),
         orderBy('created_at', 'desc')
       );
     } else {
@@ -170,9 +230,29 @@ export const getUserAuctions = async (userId, type = 'seller') => {
     const auctions = [];
     
     querySnapshot.forEach((doc) => {
+      const auctionData = doc.data();
+      const hasWinner = auctionData.winner_id && auctionData.winner_id !== null;
+      
+      // 사용자 타입에 따른 상태 텍스트 추가
+      let displayStatus = auctionData.status;
+      if (userType === 'consumer') {
+        displayStatus = getConsumerStatus(
+          auctionData.status, 
+          hasWinner, 
+          auctionData.is_payment_completed
+        );
+      } else if (userType === 'supplier') {
+        displayStatus = getSupplierStatus(
+          auctionData.status, 
+          hasWinner, 
+          auctionData.is_settlement_completed
+        );
+      }
+      
       auctions.push({
         id: doc.id,
-        ...doc.data()
+        ...auctionData,
+        displayStatus
       });
     });
     
@@ -199,7 +279,7 @@ export const activateAuction = async (auctionId, startingPrice) => {
     // RTDB에 실시간 입찰 경로 생성
     const liveAuctionRef = ref(rtdb, `live_auctions/${auctionId}`);
     await set(liveAuctionRef, {
-      current_price: startingPrice,
+      currentPrice: startingPrice,
       last_bidder_id: 'none',
       last_bid_timestamp: rtdbServerTimestamp()
     });
@@ -228,13 +308,13 @@ export const placeBid = async (auctionId, bidderId, bidAmount) => {
     }
     
     const currentData = snapshot.val();
-    if (bidAmount <= currentData.current_price) {
+    if (bidAmount <= currentData.currentPrice) {
       throw new Error('입찰 금액이 현재 최고가보다 낮습니다.');
     }
     
     // RTDB에 새 입찰 정보 저장
     await set(liveAuctionRef, {
-      current_price: bidAmount,
+      currentPrice: bidAmount,
       last_bidder_id: bidderId,
       last_bid_timestamp: rtdbServerTimestamp()
     });
@@ -266,12 +346,14 @@ export const finishAuction = async (auctionId) => {
     };
     
     if (finalData && finalData.last_bidder_id !== 'none') {
-      updateData.final_price = finalData.current_price;
+      updateData.finalPrice = finalData.currentPrice;
       updateData.winner_id = finalData.last_bidder_id;
+      updateData.status = 'FINISHED';
     } else {
       // 유찰 처리
-      updateData.final_price = null;
+      updateData.finalPrice = null;
       updateData.winner_id = null;
+      updateData.status = 'NO_BID';
     }
     
     await updateDoc(auctionRef, updateData);
@@ -286,6 +368,46 @@ export const finishAuction = async (auctionId) => {
   } catch (error) {
     console.error('경매 종료 처리 실패:', error);
     throw new Error('경매 종료 처리에 실패했습니다.');
+  }
+};
+
+/**
+ * 경매 결제 완료 처리
+ * @param {string} auctionId - 경매 ID
+ */
+export const completePayment = async (auctionId) => {
+  try {
+    const auctionRef = doc(db, 'auctions', auctionId);
+    await updateDoc(auctionRef, {
+      is_payment_completed: true,
+      payment_completed_at: new Date()
+    });
+    
+    console.log('결제 완료 처리:', auctionId);
+    return true;
+  } catch (error) {
+    console.error('결제 완료 처리 실패:', error);
+    throw new Error('결제 완료 처리에 실패했습니다.');
+  }
+};
+
+/**
+ * 경매 정산 완료 처리
+ * @param {string} auctionId - 경매 ID
+ */
+export const completeSettlement = async (auctionId) => {
+  try {
+    const auctionRef = doc(db, 'auctions', auctionId);
+    await updateDoc(auctionRef, {
+      is_settlement_completed: true,
+      settlement_completed_at: new Date()
+    });
+    
+    console.log('정산 완료 처리:', auctionId);
+    return true;
+  } catch (error) {
+    console.error('정산 완료 처리 실패:', error);
+    throw new Error('정산 완료 처리에 실패했습니다.');
   }
 };
 

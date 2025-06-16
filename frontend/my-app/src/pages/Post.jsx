@@ -7,15 +7,17 @@ import { ProductInfoForm } from "../components/post/ProductInfoForm";
 import InfoDialog from '../components/InfoDialog';
 
 import { validateProductForm, isFormValid, removeFieldErrors } from "../utils/validations";
+import { createAuction } from "../services/auctionService";
+import { useAuth } from "../hooks/useAuth";
 
 export function Post() {
     const navigate = useNavigate();
+    const { user, userInfo, isAuthenticated } = useAuth();
     
     // 상태 관리
     const [selectedImage, setSelectedImage] = useState(null);
     const [imageFile, setImageFile] = useState(null);
     const [formData, setFormData] = useState({
-        seller_id: 1, // TODO: 현재 등록하는 회원의 id로 지정
         name: '',
         origin: '',
         auction_start_time: '',
@@ -25,6 +27,7 @@ export function Post() {
     });
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState('');
 
     // Dialog
     const [open, setOpen] = useState(false); // 성공
@@ -58,6 +61,20 @@ export function Post() {
     const handleSubmit = async () => {
         if (isSubmitting) return;
 
+        // 인증 확인
+        if (!isAuthenticated || !user || !userInfo) {
+            setSubmitError('로그인이 필요합니다.');
+            setErrorOpen(true);
+            return;
+        }
+
+        // 판매자 인증 확인
+        if (userInfo.user_type !== 'seller' || !userInfo.seller_info?.is_verified) {
+            setSubmitError('판매자 인증이 필요합니다.');
+            setErrorOpen(true);
+            return;
+        }
+
         // 유효성 검사 (분리된 함수 사용)
         const validationErrors = validateProductForm(formData, imageFile);
         
@@ -69,25 +86,38 @@ export function Post() {
         }
 
         setIsSubmitting(true);
+        setSubmitError('');
 
         try {
-            // 모든 정보가 완성된 경우
-            const submitData = {
-                image: selectedImage,
-                productInfo: formData
+            // 경매 데이터 구성
+            const auctionData = {
+                name: formData.name,
+                description: formData.description,
+                origin: formData.origin,
+                auction_start_time: formData.auction_start_time,
+                auction_end_time: formData.auction_end_time,
+                startPrice: formData.startPrice,
+                currentPrice: formData.startPrice,
+                seller_name: userInfo.seller_info?.business_name || userInfo.displayName,
+                business_license: userInfo.seller_info?.business_registration_number,
+                recommend: `${formData.name} - 신선한 해산물입니다!`,
+                status: 'PENDING'
             };
 
-            console.log('성공');
-            console.log('제출 데이터:', submitData);
-
-            // 여기에 실제 API 호출 로직 추가
-            // await uploadProduct(submitData);
+            console.log('경매 생성 시작:', auctionData);
+            
+            // 실제 API 호출
+            const auctionId = await createAuction(auctionData, imageFile, user.uid);
+            
+            console.log('경매 생성 성공:', auctionId);
             
             // 성공 시 성공 메시지 표시
             setOpen(true);
 
         } catch (error) {
-            console.error('업로드 실패:', error);
+            console.error('경매 생성 실패:', error);
+            setSubmitError(error.message || '경매 등록에 실패했습니다.');
+            setErrorOpen(true);
         } finally {
             setIsSubmitting(false);
         }
@@ -115,7 +145,7 @@ export function Post() {
                 formData={formData}
                 onFormChange={handleFormChange}
                 errors={errors}
-                seller='돌덩수산'  // TODO: 유저 이름으로 변경
+                seller={userInfo?.seller_info?.business_name || userInfo?.displayName || '판매자'}
             />
 
             {/* 하단 등록 버튼 */}
@@ -125,7 +155,7 @@ export function Post() {
                 justifyContent: 'center', 
                 alignItems: 'center',
                 p: '20px',
-                pb: '40px'
+                pb: '80px'
             }}>
                 <Button 
                     variant="contained" 
@@ -143,7 +173,10 @@ export function Post() {
             </Box>
             <InfoDialog
                 open={open}
-                onClose={() => setOpen(false)}
+                onClose={() => {
+                    setOpen(false);
+                    navigate(-1); // 성공 시 이전 페이지로 이동
+                }}
                 confirmText="확인"
             >
                 <Typography variant="overline">
@@ -156,7 +189,7 @@ export function Post() {
                 confirmText="확인"
             >
                 <Typography variant="overline">
-                    필요한 모든 정보가 입력되지 않았습니다.
+                    {submitError || '필요한 모든 정보가 입력되지 않았습니다.'}
                 </Typography>
             </InfoDialog>
         </>

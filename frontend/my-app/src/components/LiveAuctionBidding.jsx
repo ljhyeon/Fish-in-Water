@@ -153,10 +153,10 @@ const LiveAuctionBidding = ({ auctionId, auction }) => {
             {auction.name}
           </Typography>
           <Typography variant="body2" color="text.secondary" gutterBottom>
-            {auction.location} • {auction.species}
+            {auction.origin} • {auction.species}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            판매자: {auction.seller_name}
+            판매자: {auction.seller?.name}
           </Typography>
         </Box>
 
@@ -290,7 +290,7 @@ const LiveAuctionBidding = ({ auctionId, auction }) => {
             {auction.status === 'FINISHED' && (
               <Box>
                 <Typography variant="h5" color="primary.main" gutterBottom>
-                  최종 낙찰가: ₩{auction.final_price?.toLocaleString() || '유찰'}
+                  최종 낙찰가: ₩{auction.finalPrice?.toLocaleString() || '유찰'}
                 </Typography>
                 {auction.winner_id && (
                   <Typography variant="body2" color="text.secondary">
