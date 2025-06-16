@@ -8,6 +8,14 @@ export const testItems = [
         startPrice: 100000,
         currentPrice: 150000,
         finalPrice: null,
+        recommend: "제주도 특산 황돔! 신선한 황돔을 만나보세요",
+        auction_start_time: "2024-03-20T10:00:00",
+        auction_end_time: "2024-03-21T10:00:00",
+        seller: {
+            id: "seller1",
+            name: "제주수산",
+            business_license: "123-45-67890"
+        },
         status: {
             consumer: "진행중",
             supplier: "진행중"
@@ -22,6 +30,14 @@ export const testItems = [
         startPrice: 200000,
         currentPrice: null,
         finalPrice: 250000,
+        recommend: "부산 앞바다의 신선한 참돔! 특별한 맛을 경험하세요",
+        auction_start_time: "2024-03-19T09:00:00",
+        auction_end_time: "2024-03-20T09:00:00",
+        seller: {
+            id: "seller2",
+            name: "부산수산",
+            business_license: "234-56-78901"
+        },
         status: {
             consumer: "낙찰/결제대기중",
             supplier: "정산대기중"
@@ -36,6 +52,14 @@ export const testItems = [
         startPrice: 50000,
         currentPrice: null,
         finalPrice: 75000,
+        recommend: "동해의 명태! 겨울철 특별한 맛을 만나보세요",
+        auction_start_time: "2024-03-18T14:00:00",
+        auction_end_time: "2024-03-19T14:00:00",
+        seller: {
+            id: "seller3",
+            name: "동해수산",
+            business_license: "345-67-89012"
+        },
         status: {
             consumer: "낙찰/결제완료",
             supplier: "완료"
@@ -50,6 +74,14 @@ export const testItems = [
         startPrice: 500000,
         currentPrice: null,
         finalPrice: null,
+        recommend: "울산 특산 고래고기! 특별한 경험을 선사합니다",
+        auction_start_time: "2024-03-17T11:00:00",
+        auction_end_time: "2024-03-18T11:00:00",
+        seller: {
+            id: "seller4",
+            name: "울산수산",
+            business_license: "456-78-90123"
+        },
         status: {
             consumer: "유찰",
             supplier: "완료"
@@ -64,6 +96,14 @@ export const testItems = [
         startPrice: 80000,
         currentPrice: 100000,
         finalPrice: null,
+        recommend: "인천 앞바다의 신선한 새우! 특별한 맛을 경험하세요",
+        auction_start_time: "2024-03-21T15:00:00",
+        auction_end_time: "2024-03-22T15:00:00",
+        seller: {
+            id: "seller5",
+            name: "인천수산",
+            business_license: "567-89-01234"
+        },
         status: {
             consumer: "진행중",
             supplier: "진행중"

@@ -224,15 +224,16 @@ export function Home3() {
 
         return (
             <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
-                {participatedAuctions.map((auction, index) => {
-                    const item = convertAuctionToItem(auction);
-                    return (
-                        <React.Fragment key={auction.id}>
-                            <AuctionItem item={item} isSupplier={false} />
-                            {index < participatedAuctions.length - 1 && <Divider variant="inset" component="li" />}
-                        </React.Fragment>
-                    );
-                })}
+                {testItems.map((item, index) => (
+                    <React.Fragment key={item.id}>
+                        <AuctionItem 
+                            item={item} 
+                            isSupplier={false} 
+                            onClick={() => navigate(`/info2/${item.id}`)}
+                        />
+                        {index < testItems.length - 1 && <Divider variant="inset" component="li" />}
+                    </React.Fragment>
+                ))}
             </List>
         );
     };
@@ -431,39 +432,23 @@ export function Home3() {
 
         return (
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                {createdAuctions && createdAuctions.length > 0 ? (
-                    <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
-                        {createdAuctions.map((auction, index) => {
-                            const item = convertAuctionToItem(auction);
-                            return (
-                                <React.Fragment key={auction.id}>
-                                    <AuctionItem item={item} isSupplier={true} />
-                                    {index < createdAuctions.length - 1 && <Divider variant="inset" component="li" />}
-                                </React.Fragment>
-                            );
-                        })}
-                    </List>
-                ) : (
-                    <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '200px', gap: 2 }}>
-                        <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-                            아직 개설한 경매가 없습니다.
-                        </Typography>
-                        <Button
-                            variant="outlined"
-                            color="secondary"
-                            onClick={() => navigate('/test-data')}
-                            sx={{ mb: 1 }}
-                        >
-                            테스트 데이터 생성하기
-                        </Button>
-                    </Box>
-                )}
-                
+                <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
+                    {testItems.map((item, index) => (
+                        <React.Fragment key={item.id}>
+                            <AuctionItem 
+                                item={item} 
+                                isSupplier={true} 
+                                onClick={() => navigate(`/info2/${item.id}`)}
+                            />
+                            {index < testItems.length - 1 && <Divider variant="inset" component="li" />}
+                        </React.Fragment>
+                    ))}
+                </List>
                 <Button
                     variant="contained"
                     color="primary"
                     size="large"
-                    onClick={() => navigate('/info2')}
+                    onClick={() => navigate('/post/:id')}
                     sx={{
                         width: '200px',
                         fontSize: '1.2rem',

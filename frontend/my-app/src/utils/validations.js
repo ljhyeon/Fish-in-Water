@@ -41,7 +41,7 @@ export const validateTimes = (startTime, endTime) => {
  * 개별 필드 검증 함수들
  */
 export const validators = {
-    productName: (value) => {
+    name: (value) => {
         if (!value?.trim()) {
             return '상품명을 입력해주세요.';
         }
@@ -69,7 +69,7 @@ export const validators = {
         return null;
     },
 
-    expectedPrice: (value) => {
+    startPrice: (value) => {
         if (!value || value <= 0) {
             return '최소 가격을 입력해주세요.';
         }
@@ -94,8 +94,8 @@ export const validateProductForm = (formData, imageFile = null) => {
     const errors = {};
 
     // 개별 필드 검증
-    const productNameError = validators.productName(formData.product_name);
-    if (productNameError) errors.product_name = productNameError;
+    const productNameError = validators.name(formData.name);
+    if (productNameError) errors.name = productNameError;
 
     const originError = validators.origin(formData.origin);
     if (originError) errors.origin = originError;
@@ -106,8 +106,8 @@ export const validateProductForm = (formData, imageFile = null) => {
     const endTimeError = validators.auctionEndTime(formData.auction_end_time);
     if (endTimeError) errors.auction_end_time = endTimeError;
 
-    const priceError = validators.expectedPrice(formData.expected_price);
-    if (priceError) errors.expected_price = priceError;
+    const priceError = validators.startPrice(formData.startPrice);
+    if (priceError) errors.startPrice = priceError;
 
     // 이미지 검증 (선택적)
     if (imageFile !== null) {

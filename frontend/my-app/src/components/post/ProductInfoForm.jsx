@@ -11,7 +11,7 @@ export function ProductInfoForm({
     errors = {}
 }) {
     const handleChange = (field) => (event) => {
-        const value = field === 'expected_price' 
+        const value = field === 'startPrice' 
             ? parseInt(event.target.value.replace(/,/g, ''), 10) || 0
             : event.target.value;
         
@@ -31,10 +31,10 @@ export function ProductInfoForm({
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 3 }}>
                 <TextField
                     label="상품명"
-                    value={formData.product_name || ''}
-                    onChange={handleChange('product_name')}
-                    error={!!errors.product_name}
-                    helperText={errors.product_name}
+                    value={formData.name || ''}
+                    onChange={handleChange('name')}
+                    error={!!errors.name}
+                    helperText={errors.name}
                     variant="outlined"
                     fullWidth
                     sx={{ '& .MuiInputBase-input': { fontWeight: '600', fontSize: '1.25rem' } }}
@@ -107,10 +107,10 @@ export function ProductInfoForm({
                 
                 <TextField
                     label="최소 가격"
-                    value={formatPrice(formData.expected_price)}
-                    onChange={handleChange('expected_price')}
-                    error={!!errors.expected_price}
-                    helperText={errors.expected_price}
+                    value={formatPrice(formData.startPrice)}
+                    onChange={handleChange('startPrice')}
+                    error={!!errors.startPrice}
+                    helperText={errors.startPrice}
                     variant="outlined"
                     fullWidth
                     InputProps={{
@@ -138,10 +138,10 @@ export function ProductInfoForm({
                     매물 소개
                 </Typography>
                 <TextField
-                    value={formData.additional_notes || ''}
-                    onChange={handleChange('additional_notes')}
-                    error={!!errors.additional_notes}
-                    helperText={errors.additional_notes}
+                    value={formData.description || ''}
+                    onChange={handleChange('description')}
+                    error={!!errors.description}
+                    helperText={errors.description}
                     variant="outlined"
                     fullWidth
                     multiline
