@@ -16,6 +16,7 @@ import { useAuth } from '../hooks/useAuth';
 const GoogleLogin = () => {
   const { 
     user, 
+    userInfo,
     loading, 
     error, 
     signInWithGoogle, 
@@ -27,8 +28,9 @@ const GoogleLogin = () => {
 
   const handleGoogleLogin = async () => {
     const result = await signInWithGoogle();
+    
     if (result.success) {
-      console.log('로그인 성공!');
+      console.log('로그인 성공!', result.isNewUser ? '신규 사용자 (consumer로 자동 배정)' : '기존 사용자');
     }
   };
 
@@ -52,33 +54,52 @@ const GoogleLogin = () => {
     );
   }
 
-  if (isAuthenticated) {
-    const userInfo = getUserInfo();
+  if (isAuthenticated && userInfo) {
+    const authUserInfo = getUserInfo();
     
     return (
       <Card sx={{ mt: 2, backgroundColor: '#f8f9fa' }}>
         <CardContent>
           <Box display="flex" alignItems="center" gap={2} mb={2}>
             <Avatar 
-              src={userInfo.photoURL} 
-              alt={userInfo.displayName}
+              src={authUserInfo.photoURL} 
+              alt={authUserInfo.displayName}
               sx={{ width: 56, height: 56 }}
             >
               <Person />
             </Avatar>
             <Box flex={1}>
               <Typography variant="h6" gutterBottom>
-                {userInfo.displayName || '사용자'}
+                {authUserInfo.displayName || '사용자'}
               </Typography>
               <Typography variant="body2" color="text.secondary" gutterBottom>
-                {userInfo.email}
+                {authUserInfo.email}
               </Typography>
-              <Chip 
-                label={userInfo.emailVerified ? '이메일 인증됨' : '이메일 미인증'} 
-                size="small" 
-                color={userInfo.emailVerified ? 'success' : 'warning'}
-                variant="outlined"
-              />
+              
+              <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                <Chip 
+                  label={authUserInfo.emailVerified ? '이메일 인증됨' : '이메일 미인증'} 
+                  size="small" 
+                  color={authUserInfo.emailVerified ? 'success' : 'warning'}
+                  variant="outlined"
+                />
+                
+                <Chip 
+                  label={userInfo.user_type === 'seller' ? '판매자' : '구매자'} 
+                  size="small" 
+                  color={userInfo.user_type === 'seller' ? 'secondary' : 'primary'}
+                  variant="outlined"
+                />
+
+                {userInfo.user_type === 'seller' && (
+                  <Chip 
+                    label={userInfo.seller_info?.is_verified ? '인증완료' : '인증대기'} 
+                    size="small" 
+                    color={userInfo.seller_info?.is_verified ? 'success' : 'warning'}
+                    variant="outlined"
+                  />
+                )}
+              </Box>
             </Box>
           </Box>
 
