@@ -153,6 +153,86 @@ class AuctionController {
       });
     }
   }
+
+  /**
+   * 특정 경매 수동 활성화 (테스트용)
+   */
+  async activateAuction(req, res) {
+    try {
+      const { auctionId } = req.params;
+      
+      const result = await auctionService.activateAuctionManually(auctionId);
+      
+      res.json({
+        success: true,
+        message: '경매가 수동으로 활성화되었습니다.',
+        data: result
+      });
+    } catch (error) {
+      console.error('경매 수동 활성화 실패:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || '경매 활성화에 실패했습니다.',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * 특정 경매 수동 종료 (테스트용)
+   */
+  async finishAuction(req, res) {
+    try {
+      const { auctionId } = req.params;
+      
+      const result = await auctionService.finishAuctionManually(auctionId);
+      
+      res.json({
+        success: true,
+        message: '경매가 수동으로 종료되었습니다.',
+        data: result
+      });
+    } catch (error) {
+      console.error('경매 수동 종료 실패:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || '경매 종료에 실패했습니다.',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * 실시간 경매 데이터 조회 (테스트용)
+   */
+  async getLiveAuctionData(req, res) {
+    try {
+      const { auctionId } = req.params;
+      const { rtdb } = require('../config/firebase');
+      
+      const snapshot = await rtdb.ref(`live_auctions/${auctionId}`).once('value');
+      const liveData = snapshot.val();
+      
+      if (!liveData) {
+        return res.status(404).json({
+          success: false,
+          message: '실시간 경매 데이터를 찾을 수 없습니다. 경매가 활성 상태가 아닐 수 있습니다.'
+        });
+      }
+      
+      res.json({
+        success: true,
+        data: liveData
+      });
+    } catch (error) {
+      console.error('실시간 경매 데이터 조회 실패:', error);
+      res.status(500).json({
+        success: false,
+        message: '실시간 경매 데이터 조회에 실패했습니다.',
+        error: error.message
+      });
+    }
+  }
 }
 
 module.exports = new AuctionController(); 

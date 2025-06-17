@@ -215,7 +215,36 @@ exports.onAuctionStatusChanged = onDocumentUpdated({
     if (beforeData.status !== afterData.status) {
       console.log(`경매 상태 변경: ${auctionId} - ${beforeData.status} -> ${afterData.status}`);
       
-      // 필요시 추가 로직 (알림 발송, 로그 기록 등)
+      // live_auctions 동기화
+      const admin = require('firebase-admin');
+      const rtdb = admin.database();
+      
+      try {
+        // 경매가 ACTIVE 상태로 변경되는 경우 live_auctions에 데이터 생성
+        if (afterData.status === 'ACTIVE') {
+          const liveAuctionData = {
+            auctionId: auctionId,
+            currentPrice: afterData.currentPrice || afterData.startPrice,
+            last_bidder_id: 'none',
+            last_bid_timestamp: Date.now(),
+            status: 'ACTIVE',
+            created_at: Date.now()
+          };
+          
+          await rtdb.ref(`live_auctions/${auctionId}`).set(liveAuctionData);
+          console.log(`live_auctions에 경매 데이터 생성: ${auctionId}`);
+        }
+        
+        // 경매가 종료되는 경우 live_auctions에서 데이터 삭제
+        if (afterData.status === 'FINISHED' || afterData.status === 'NO_BID') {
+          await rtdb.ref(`live_auctions/${auctionId}`).remove();
+          console.log(`live_auctions에서 경매 데이터 삭제: ${auctionId}`);
+        }
+        
+        console.log(`live_auctions 동기화 완료: ${auctionId}`);
+      } catch (syncError) {
+        console.error(`live_auctions 동기화 실패: ${auctionId}`, syncError);
+      }
     }
     
     return { success: true };

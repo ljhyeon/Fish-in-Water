@@ -3,16 +3,23 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
-import { Box, BottomNavigation, BottomNavigationAction } from '@mui/material';
+import { Box, BottomNavigation, BottomNavigationAction, IconButton } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 
 import { AuctionIcon, Properties, Info, FishLogo } from './Icons';
+import LogoutConfirmDialog from '../LogoutConfirmDialog';
+import { useAuth } from '../../hooks/useAuth';
+import useAuthStore from '../../store/authStore';
 
 export function Layout({ description, children }) {
     const theme = useTheme();
 
     const navigate = useNavigate();
     const location = useLocation();
+
+    // 인증 관련 hooks
+    const { signOut } = useAuth();
+    const { completeLogout } = useAuthStore();
 
     // 현재 경로에 맞춰 value 상태 초기화
     // navItems value와 path 매핑을 해두고 location.pathname 기반으로 value 세팅
@@ -23,6 +30,9 @@ export function Layout({ description, children }) {
     };
 
     const [value, setValue] = useState(pathToValueMap[location.pathname] || 'properties');
+    
+    // 로그아웃 모달 상태
+    const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
 
     const handleChange = (event, newValue) => {
         setValue(newValue);
@@ -41,6 +51,41 @@ export function Layout({ description, children }) {
         default:
             break;
         }
+    };
+
+    // 물고기 로고 클릭 핸들러
+    const handleLogoClick = () => {
+        setIsLogoutDialogOpen(true);
+    };
+
+    // 로그아웃 확인 핸들러
+    const handleLogoutConfirm = async () => {
+        try {
+            // 1. Firebase 로그아웃
+            await signOut();
+            
+            // 2. 완전한 데이터 삭제 (zustand, localStorage, sessionStorage, cache)
+            completeLogout();
+            
+            // 3. 로그인 페이지로 이동
+            navigate('/login');
+            
+            // 4. 모달 닫기
+            setIsLogoutDialogOpen(false);
+            
+            console.log('🔥 완전한 로그아웃 처리 완료');
+        } catch (error) {
+            console.error('❌ 로그아웃 처리 중 오류:', error);
+            // 오류가 발생해도 강제로 로그아웃 처리
+            completeLogout();
+            navigate('/login');
+            setIsLogoutDialogOpen(false);
+        }
+    };
+
+    // 로그아웃 취소 핸들러
+    const handleLogoutCancel = () => {
+        setIsLogoutDialogOpen(false);
     };
 
     const navItems = [
@@ -66,7 +111,19 @@ export function Layout({ description, children }) {
             {/* 상단바 영역 - 고정 위치 */}
             <AppBar position="fixed">
                 <Toolbar sx={{ display: 'grid', justifyItems: 'center', minHeight: '100px !important', }}>
-                    <FishLogo />
+                    <IconButton
+                        onClick={handleLogoClick}
+                        sx={{ 
+                            p: 0, 
+                            '&:hover': { 
+                                backgroundColor: 'transparent',
+                                transform: 'scale(1.05)'
+                            },
+                            transition: 'transform 0.2s ease-in-out'
+                        }}
+                    >
+                        <FishLogo />
+                    </IconButton>
                     <Box sx={{ mb:1, width: '100%', height: '16px' }}>{description}</Box>
                 </Toolbar>
             </AppBar>
@@ -111,6 +168,13 @@ export function Layout({ description, children }) {
                 );
             })}
             </BottomNavigation>
+
+            {/* 로그아웃 확인 모달 */}
+            <LogoutConfirmDialog
+                open={isLogoutDialogOpen}
+                onClose={handleLogoutCancel}
+                onConfirm={handleLogoutConfirm}
+            />
         </Box>
     )
 }

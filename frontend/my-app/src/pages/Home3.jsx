@@ -16,7 +16,6 @@ import { useUserAuctions } from '../hooks/useAuction';
 import { uploadSellerDocument, convertToSeller } from '../services/userService';
 import AuctionItem from '../components/AuctionItem';
 import FormDialog from '../components/FormDialog';
-import { testItems } from '../data/testItems';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -140,25 +139,30 @@ export function Home3() {
 
     // Firebase 경매 데이터를 기존 testItems 형식으로 변환
     const convertAuctionToItem = (auction) => {
-        let consumerStatus, supplierStatus;
+        // displayStatus가 이미 있으면 사용, 없으면 기본 상태 로직 적용
+        let displayStatus = auction.displayStatus;
         
-        switch (auction.status) {
-            case 'PENDING':
-                consumerStatus = supplierStatus = '시작 예정';
-                break;
-            case 'ACTIVE':
-                consumerStatus = supplierStatus = '진행중';
-                break;
-            case 'FINISHED':
-                if (auction.finalPrice && auction.winner_id) {
-                    consumerStatus = auction.winner_id === user?.uid ? '낙찰/결제대기중' : '유찰';
-                    supplierStatus = '정산대기중';
-                } else {
-                    consumerStatus = supplierStatus = '유찰';
-                }
-                break;
-            default:
-                consumerStatus = supplierStatus = '알 수 없음';
+        if (!displayStatus) {
+            switch (auction.status) {
+                case 'PENDING':
+                    displayStatus = '시작 예정';
+                    break;
+                case 'ACTIVE':
+                    displayStatus = '진행중';
+                    break;
+                case 'FINISHED':
+                    if (auction.finalPrice && auction.winner_id) {
+                        displayStatus = auction.winner_id === user?.uid ? '낙찰/결제대기중' : '낙찰완료';
+                    } else {
+                        displayStatus = '유찰';
+                    }
+                    break;
+                case 'NO_BID':
+                    displayStatus = '유찰';
+                    break;
+                default:
+                    displayStatus = '알 수 없음';
+            }
         }
 
         // Firestore Timestamp를 문자열로 변환
@@ -188,10 +192,7 @@ export function Home3() {
             auction_start_time: formatFirestoreDate(auction.auction_start_time),
             auction_end_time: formatFirestoreDate(auction.auction_end_time),
             seller: auction.seller,
-            status: {
-                consumer: consumerStatus,
-                supplier: supplierStatus
-            }
+            displayStatus: displayStatus // 문자열로 설정
         };
     };
 
@@ -264,14 +265,6 @@ export function Home3() {
                     <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
                         참여한 경매가 없어요! 경매에 참여해보세요.
                     </Typography>
-                    <Button
-                        variant="outlined"
-                        color="primary"
-                        onClick={() => navigate('/test-data')}
-                        sx={{ mt: 1 }}
-                    >
-                        테스트 데이터 생성하기
-                    </Button>
                 </Box>
             );
         }

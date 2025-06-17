@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogContentText, DialogActions, Button } from '@mui/material';
+import { Dialog, DialogContent, DialogActions, Button, Box } from '@mui/material';
 
 import { useTheme } from '@mui/material/styles';
 
@@ -24,9 +24,9 @@ export default function InfoDialog({
             onClose={onClose}
         >
         <DialogContent>
-            <DialogContentText sx={{ color: theme.palette.grey[900] }}>
+            <Box sx={{ color: theme.palette.grey[900] }}>
                 {children}
-            </DialogContentText>
+            </Box>
         </DialogContent>
         <DialogActions sx={{ justifyContent: 'center' }}>
             <Button variant="contained" onClick={onClose}>

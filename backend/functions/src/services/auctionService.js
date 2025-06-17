@@ -1,4 +1,4 @@
-const { db } = require('../config/firebase');
+const { db, rtdb } = require('../config/firebase');
 const { AUCTION_STATUS } = require('../constants/auctionStatus');
 
 class AuctionService {
@@ -40,7 +40,7 @@ class AuctionService {
           if (auctionStartTime <= seoulTime) {
           console.log(`경매 활성화 예정: ${doc.id} - ${auction.name}`);
           
-          const updatePromise = auctionsRef.doc(doc.id).update({
+          const updatePromise = this.updateAuctionInBothDatabases(doc.id, {
             status: AUCTION_STATUS.ACTIVE,
             activated_at: seoulTime
           });
@@ -106,7 +106,7 @@ class AuctionService {
           const hasWinner = auction.winner_id && auction.winner_id !== null;
           const finalStatus = hasWinner ? AUCTION_STATUS.FINISHED : AUCTION_STATUS.NO_BID;
           
-          const updatePromise = auctionsRef.doc(doc.id).update({
+          const updatePromise = this.updateAuctionInBothDatabases(doc.id, {
             status: finalStatus,
             finished_at: seoulTime
           });
@@ -205,12 +205,56 @@ class AuctionService {
         ...additionalData
       };
       
-      await db.collection('auctions').doc(auctionId).update(updateData);
+      await this.updateAuctionInBothDatabases(auctionId, updateData);
       console.log(`경매 상태 업데이트 완료: ${auctionId} -> ${status}`);
       
       return true;
     } catch (error) {
       console.error('경매 상태 업데이트 중 오류 발생:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Firestore와 Realtime Database를 동시에 업데이트하는 헬퍼 함수
+   */
+  async updateAuctionInBothDatabases(auctionId, updateData) {
+    try {
+      // Firestore 업데이트
+      await db.collection('auctions').doc(auctionId).update(updateData);
+      
+      // 경매가 ACTIVE 상태로 변경되는 경우 live_auctions에 데이터 생성
+      if (updateData.status === 'ACTIVE') {
+        // Firestore에서 전체 경매 데이터 조회
+        const auctionDoc = await db.collection('auctions').doc(auctionId).get();
+        if (auctionDoc.exists()) {
+          const auctionData = auctionDoc.data();
+          
+          // live_auctions에 실시간 경매 데이터 생성
+          const liveAuctionData = {
+            auctionId: auctionId,
+            currentPrice: auctionData.currentPrice || auctionData.startPrice,
+            last_bidder_id: 'none',
+            last_bid_timestamp: Date.now(),
+            status: 'ACTIVE',
+            created_at: Date.now()
+          };
+          
+          await rtdb.ref(`live_auctions/${auctionId}`).set(liveAuctionData);
+          console.log(`live_auctions에 경매 데이터 생성: ${auctionId}`);
+        }
+      }
+      
+      // 경매가 종료되는 경우 live_auctions에서 데이터 삭제
+      if (updateData.status === 'FINISHED' || updateData.status === 'NO_BID') {
+        await rtdb.ref(`live_auctions/${auctionId}`).remove();
+        console.log(`live_auctions에서 경매 데이터 삭제: ${auctionId}`);
+      }
+      
+      console.log(`경매 ${auctionId} Firestore 업데이트 및 live_auctions 동기화 완료`);
+      return true;
+    } catch (error) {
+      console.error(`경매 ${auctionId} 데이터베이스 업데이트 실패:`, error);
       throw error;
     }
   }

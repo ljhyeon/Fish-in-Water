@@ -7,6 +7,7 @@ import { ProductInfoForm } from "../components/post/ProductInfoForm";
 import InfoDialog from '../components/InfoDialog';
 
 import { validateProductForm, isFormValid, removeFieldErrors } from "../utils/validations";
+import { validateImageFile } from "../utils/imageUtils";
 import { createAuction } from "../services/auctionService";
 import { useAuth } from "../hooks/useAuth";
 
@@ -36,6 +37,14 @@ export function Post() {
     const handleImageSelect = (file, dataUrl) => {
         console.log('선택된 파일:', file);
         console.log('이미지 데이터 URL:', dataUrl);
+        
+        // 이미지 파일 유효성 검사
+        const validation = validateImageFile(file);
+        if (!validation.isValid) {
+            setErrors(prev => ({ ...prev, image: validation.error }));
+            return;
+        }
+        
         setImageFile(file);
         setSelectedImage(dataUrl);
         
@@ -105,6 +114,7 @@ export function Post() {
             };
 
             console.log('경매 생성 시작:', auctionData);
+            console.log('이미지 파일:', imageFile ? `${imageFile.name} (${(imageFile.size / 1024 / 1024).toFixed(2)}MB)` : '없음');
             
             // 실제 API 호출
             const auctionId = await createAuction(auctionData, imageFile, user.uid);
@@ -116,7 +126,13 @@ export function Post() {
 
         } catch (error) {
             console.error('경매 생성 실패:', error);
-            setSubmitError(error.message || '경매 등록에 실패했습니다.');
+            
+            // 이미지 업로드 관련 에러인지 확인
+            if (error.message.includes('이미지') || error.message.includes('파일')) {
+                setSubmitError(`이미지 업로드 오류: ${error.message}`);
+            } else {
+                setSubmitError(error.message || '경매 등록에 실패했습니다.');
+            }
             setErrorOpen(true);
         } finally {
             setIsSubmitting(false);

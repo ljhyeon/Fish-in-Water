@@ -33,6 +33,35 @@ const useAuthStore = create(
         error: null 
       }),
 
+      // 완전한 로그아웃 (모든 데이터 삭제)
+      completeLogout: () => {
+        // localStorage 완전 삭제
+        localStorage.clear();
+        
+        // sessionStorage 완전 삭제  
+        sessionStorage.clear();
+        
+        // 브라우저 캐시 삭제 (service worker cache)
+        if ('caches' in window) {
+          caches.keys().then(cacheNames => {
+            cacheNames.forEach(cacheName => {
+              caches.delete(cacheName);
+            });
+          });
+        }
+        
+        // zustand 상태 초기화
+        set({ 
+          user: null, 
+          userInfo: null,
+          isAuthenticated: false, 
+          loading: false,
+          error: null 
+        });
+        
+        console.log('🔥 완전한 로그아웃 완료 - 모든 데이터 삭제됨');
+      },
+
       // 사용자 정보 가져오기 (Firebase Auth)
       getUserInfo: () => {
         const user = get().user;

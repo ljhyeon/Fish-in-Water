@@ -8,10 +8,13 @@ import { ProductInfoReadOnly } from '../components/info/ProductInfoReadOnly';
 import InfoDialog from '../components/InfoDialog';
 import { LoadingOverlay } from '../components/Spinner';
 
-import { getAuction } from '../services/auctionService';
+import { getAuction, getImageUrl } from '../services/auctionService';
+import { useLiveAuctionImproved } from '../hooks/useAuction';
+import { useAuth } from '../hooks/useAuth';
 
 export function Info2() {
     const navigate = useNavigate();
+    const { user } = useAuth();
 
     const isUserSeller = false; // 낙찰자인지 판매자인지 구분 필요 (false: 낙찰자, true: 판매자)
 
@@ -24,19 +27,31 @@ export function Info2() {
     const [isLoading, setIsLoading] = useState(false);
     const [open, setOpen] = useState(false);
 
+    // 실시간 경매 데이터 및 입찰 기능
+    const { 
+        liveData, 
+        bidHistory,
+        isActive, 
+        currentPrice, 
+        isMyBid,
+        isParticipating,
+        myHighestBid 
+    } = useLiveAuctionImproved(id);
+
     // 경매 데이터 로딩
     useEffect(() => {
         const fetchAuctionData = async () => {
             try {
                 setLoading(true);
                 const auction = await getAuction(id);
+                console.log('Info2 - 서버에서 가져온 매물 데이터:', auction);
                 if (auction) {
                     setAuctionData(auction);
                 } else {
                     setError('경매 정보를 찾을 수 없습니다.');
                 }
             } catch (err) {
-                console.error('경매 데이터 로딩 실패:', err);
+                console.error('Info2 - 경매 데이터 로딩 실패:', err);
                 setError('경매 정보를 불러오는데 실패했습니다.');
             } finally {
                 setLoading(false);
@@ -48,12 +63,25 @@ export function Info2() {
         }
     }, [id]);
 
+    // 실시간 데이터 변경 감지 및 로그
+    useEffect(() => {
+        console.log('Info2 - 실시간 데이터 업데이트:', {
+            liveData,
+            isActive,
+            currentPrice,
+            isMyBid,
+            isParticipating,
+            myHighestBid,
+            bidHistoryCount: bidHistory?.length || 0
+        });
+    }, [liveData, isActive, currentPrice, isMyBid, isParticipating, myHighestBid, bidHistory]);
+
     const handleButton = () => {
+        
         if (isUserSeller) {
             setOpen(true);
         }
         else {
-            console.log('결제 페이지로 넘어가는 것 같은 로딩');
             setIsLoading(true);
             setTimeout(() => {
                 setIsLoading(false);
@@ -89,6 +117,9 @@ export function Info2() {
         );
     }
 
+    // 현재 표시할 가격 (실시간 데이터가 있으면 우선, 없으면 최종 가격 또는 기본 가격)
+    const displayPrice = isActive ? currentPrice : (auctionData.finalPrice || auctionData.currentPrice);
+    
     const shouldShowButton = auctionData?.finalPrice && (
         isUserSeller || // 판매자면 항상 보여줌 (낙찰자 정보 확인)
         (!isUserSeller && auctionData?.status?.consumer !== "낙찰/결제완료") // 구매자면 결제완료가 아닐 때만
@@ -101,12 +132,37 @@ export function Info2() {
             <Box sx={{width:'100%', height: '100%'}}>
                 {/* 매물 이미지 */}
                 <ImageWithBackButton 
-                    src={auctionData?.image} 
+                    src={getImageUrl(auctionData?.image)} 
                     onBackClick={() => navigate(-1)}  // 뒤로 가기 버튼 기능
                 />
     
                 {/* 매물 정보 */}
-                <ProductInfoReadOnly dummyData={auctionData} type={2} />
+                <ProductInfoReadOnly 
+                    dummyData={{
+                        ...auctionData,
+                        currentPrice: displayPrice, // 실시간 가격으로 업데이트
+                        finalPrice: auctionData.finalPrice || displayPrice // 최종 가격
+                    }} 
+                    type={2} 
+                />
+                
+                {/* 내 참여 정보 (경매가 완료되었어도 참여 정보 표시) */}
+                {isParticipating && (
+                    <Box sx={{ p: 2 }}>
+                        <Typography variant="subtitle2" color="primary" gutterBottom>
+                            경매 참여 정보
+                        </Typography>
+                        <Typography variant="body2">
+                            내 최고 입찰가: ₩{myHighestBid.toLocaleString()}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                            {auctionData.winner_id === user?.uid 
+                                ? '🎉 축하합니다! 낙찰되었습니다!' 
+                                : '아쉽게도 낙찰되지 못했습니다.'
+                            }
+                        </Typography>
+                    </Box>
+                )}
                 
                 {/* 하단 버튼 */}
                 {shouldShowButton && (
@@ -139,7 +195,7 @@ export function Info2() {
                     </Typography>
                     {/* 낙찰 금액으로 변경 */}
                     <Typography variant="body2" sx={{ color: 'grey.700' }}>
-                        {auctionData?.finalPrice?.toLocaleString('ko-KR') || 0} 원
+                        {displayPrice?.toLocaleString('ko-KR') || 0} 원
                     </Typography>
                 </Box>
                 </Box>

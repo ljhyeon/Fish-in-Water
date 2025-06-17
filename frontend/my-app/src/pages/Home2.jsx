@@ -1,33 +1,54 @@
-import * as React from 'react';
-import { Box, Typography, List, Divider } from '@mui/material';
+import { useState, useEffect } from 'react';
+import { Box, Typography, List, Divider, CircularProgress, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { testItems } from '../data/testItems';
 import AuctionItem from '../components/AuctionItem';
+import { useAuth } from '../hooks/useAuth';
+import { useUserAuctions } from '../hooks/useAuction';
 
 export function Home2() {
     const navigate = useNavigate();
-    const [hasItems, setHasItems] = React.useState(true);
+    const { user, userInfo, isAuthenticated } = useAuth();
+    
+    // 사용자가 참여한 경매 데이터 조회
+    const { auctions: participatedAuctions, loading, error } = useUserAuctions('bidder');
 
-    // 현재 진행 중이고 내가 입찰한 경매만 필터링
-    const filteredItems = testItems.filter(item => {
-        const isOngoing = item.status.consumer === '진행중';
-        const hasBid = item.currentPrice !== null; // 입찰 여부는 currentPrice가 있는지로 판단
-        return isOngoing && hasBid;
-    });
+    // 로딩 중일 때
+    if (loading) {
+        return (
+            <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center', 
+                height: '100vh' 
+            }}>
+                <CircularProgress />
+            </Box>
+        );
+    }
 
-    React.useEffect(() => {
-        setHasItems(filteredItems.length > 0);
-    }, [filteredItems]);
+    // 에러가 있을 때
+    if (error) {
+        return (
+            <Box sx={{ p: 2, textAlign: 'center' }}>
+                <Typography variant="h6" color="error">
+                    경매 목록을 불러오는데 실패했습니다.
+                </Typography>
+                <Button onClick={() => window.location.reload()} sx={{ mt: 2 }}>
+                    다시 시도
+                </Button>
+            </Box>
+        );
+    }
 
     const renderContent = () => {
-        if (!hasItems) {
+        if (!participatedAuctions || participatedAuctions.length === 0) {
             return (
                 <Box sx={{ 
                     display: 'flex', 
                     flexDirection: 'column', 
                     justifyContent: 'center', 
                     alignItems: 'center', 
-                    height: '300px', 
+                    height: '85vh', 
                     gap: 2 
                 }}>
                     <img src="/non_fish.svg" style={{ width: '300px', height: 'auto' }} />
@@ -40,15 +61,15 @@ export function Home2() {
 
         return (
             <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
-                {filteredItems.map((item, index) => (
-                    <React.Fragment key={item.id}>
+                {participatedAuctions.map((item, index) => (
+                    <Box key={item.id}>
                         <AuctionItem 
                             item={item}
                             pageType="home2"
                             onClick={() => navigate(`/info1/${item.id}`)}
                         />
-                        {index < filteredItems.length - 1 && <Divider variant="inset" component="li" />}
-                    </React.Fragment>
+                        {index < participatedAuctions.length - 1 && <Divider variant="inset" component="li" />}
+                    </Box>
                 ))}
             </List>
         );
