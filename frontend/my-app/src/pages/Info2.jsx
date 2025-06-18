@@ -205,9 +205,12 @@ export function Info2() {
                             내 최고 입찰가: ₩{myHighestBid.toLocaleString()}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                            {auctionData.winner_id === user?.uid 
-                                ? '🎉 축하합니다! 낙찰되었습니다!' 
-                                : '아쉽게도 낙찰되지 못했습니다.'
+                            {auctionData.displayStatus === "ACTIVE" ?
+                                `경매 진행 중입니다. 현재 최고 입찰가는 ${currentPrice.toLocaleString()} 원입니다.` : (
+                                    auctionData.winner_id === user?.uid 
+                                    ? '🎉 축하합니다! 낙찰되었습니다!' 
+                                    : '아쉽게도 낙찰되지 못했습니다.'
+                                )
                             }
                         </Typography>
                     </Box>
