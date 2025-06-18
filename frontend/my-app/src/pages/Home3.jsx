@@ -363,14 +363,7 @@ export function Home3() {
                             }
                         ]}
                         disableBackdropClose={true}
-                        buttonProps={{
-                            disabled: convertingToSeller,
-                            sx: {
-                                minWidth: '120px',
-                                height: '40px',
-                                fontSize: '1.1rem'
-                            }
-                        }}
+                        buttonProps={{ disabled: convertingToSeller, }}
                     />
                 </Box>
             );
