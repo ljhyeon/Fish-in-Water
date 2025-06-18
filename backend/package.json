@@ -1,25 +1,29 @@
 {
   "name": "fish-in-water-backend",
   "version": "1.0.0",
-  "description": "경매 시스템 백엔드 서버",
-  "main": "src/index.js",
+  "description": "Fish in Water Auction Backend",
+  "main": "index.js",
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "nodemon src/index.js",
-    "auction-scheduler": "node src/services/auctionScheduler.js",
-    "test-scheduler": "node test-scheduler.js"
+    "start": "TZ=Asia/Seoul node src/index.js",
+    "dev": "TZ=Asia/Seoul nodemon src/index.js",
+    "scheduler": "TZ=Asia/Seoul node src/services/auctionScheduler.js",
+    "test": "TZ=Asia/Seoul node test-scheduler.js"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "firebase-admin": "^11.11.0",
-    "node-cron": "^3.0.2",
+    "firebase-admin": "^11.8.0",
     "cors": "^2.8.5",
-    "dotenv": "^16.3.1"
+    "node-cron": "^3.0.2"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "nodemon": "^2.0.22"
   },
-  "keywords": ["auction", "firebase", "express"],
-  "author": "",
-  "license": "ISC"
-} 
+  "keywords": [
+    "auction",
+    "firebase",
+    "nodejs"
+  ],
+  "author": "Fish in Water Team",
+  "license": "MIT",
+  "packageManager": "pnpm@10.11.0+sha512.6540583f41cc5f628eb3d9773ecee802f4f9ef9923cc45b69890fb47991d4b092964694ec3a4f738a420c918a333062c8b925d312f42e4f0c263eb603551f977"
+}

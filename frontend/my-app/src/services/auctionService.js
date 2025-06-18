@@ -348,7 +348,10 @@ export const placeBidImproved = async (auctionId, bidderId, bidAmount) => {
           return;
         }
         
-        const timestamp = Date.now();
+        // 서울시간 기준 타임스탬프 생성 (UTC+9)
+        const utcNow = new Date();
+        const seoulTime = new Date(utcNow.getTime() + (9 * 60 * 60 * 1000));
+        const timestamp = seoulTime.getTime();
         
         // 실시간 경매 데이터 업데이트
         updates[`live_auctions/${auctionId}`] = {

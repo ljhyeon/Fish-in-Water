@@ -17,10 +17,20 @@ class AuctionScheduler {
 
     console.log('경매 상태 업데이트 스케줄러를 시작합니다...');
     
-    // 매분 0초에 실행 (cron expression: 초 분 시 일 월 요일)
+    // 매분 0초에 실행 (서울 시간대 기준)
     this.job = cron.schedule('0 * * * * *', async () => {
       try {
-        console.log(`[${new Date().toISOString()}] 경매 상태 확인 중...`);
+        // 서울 시간 기준으로 로그
+        const seoulTime = new Date().toLocaleString("ko-KR", {
+          timeZone: "Asia/Seoul",
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        });
+        console.log(`[서울시간: ${seoulTime}] 경매 상태 확인 중...`);
         
         // 시작 시간이 된 경매들 활성화
         const activatedAuctions = await auctionService.activatePendingAuctions();
@@ -30,7 +40,7 @@ class AuctionScheduler {
         
         // 결과 로그
         if (activatedAuctions.length > 0 || finishedAuctions.length > 0) {
-          console.log(`업데이트 완료 - 활성화: ${activatedAuctions.length}개, 종료: ${finishedAuctions.length}개`);
+          console.log(`[서울시간: ${seoulTime}] 업데이트 완료 - 활성화: ${activatedAuctions.length}개, 종료: ${finishedAuctions.length}개`);
         }
         
       } catch (error) {
@@ -42,7 +52,7 @@ class AuctionScheduler {
     });
 
     this.isRunning = true;
-    console.log('경매 스케줄러가 시작되었습니다. (매분 실행)');
+    console.log('경매 스케줄러가 시작되었습니다. (1분마다 실행, 서울 시간대 기준)');
   }
 
   /**

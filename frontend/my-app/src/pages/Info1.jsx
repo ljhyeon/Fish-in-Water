@@ -39,6 +39,7 @@ export function Info1() {
     const [openMinMyPrice, setOpenMinMyPrice] = useState(false);
     const [openSuccess, setOpenSuccess] = useState(false);
     const [openError, setOpenError] = useState(false);
+    const [openExpired, setOpenExpired] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
 
     // 경매 데이터 로딩
@@ -66,12 +67,47 @@ export function Info1() {
         }
     }, [id]);
 
+    // 경매 종료 여부 확인 함수
+    const isAuctionExpired = () => {
+        if (!auctionData) return false;
+        
+        // 1. 상태 기반 체크 (우선순위)
+        if (auctionData.status === 'FINISHED' || auctionData.displayStatus === 'FINISHED') {
+            return true;
+        }
+        
+        // 2. 시간 기반 체크 (보조)
+        if (!auctionData.auction_end_time) return false;
+        
+        // 서울시간 기준으로 현재 시간과 비교
+        const now = new Date();
+        const kstDateString = now.toLocaleString('en-US', { timeZone: 'Asia/Seoul' });
+        const seoulNow = new Date(kstDateString);
+        
+        // 경매 종료시간 파싱
+        let endTime;
+        if (auctionData.auction_end_time.includes('+') || auctionData.auction_end_time.includes('Z')) {
+            endTime = new Date(auctionData.auction_end_time);
+        } else {
+            endTime = new Date(auctionData.auction_end_time + '+09:00');
+        }
+        
+        return seoulNow >= endTime;
+    };
+
     const handleOpen = () => {
         if (!user) {
             setErrorMessage('로그인이 필요합니다.');
             setOpenError(true);
             return;
         }
+        
+        // 경매 종료 여부 확인
+        if (isAuctionExpired()) {
+            setOpenExpired(true);
+            return;
+        }
+        
         if (!isActive) {
             setErrorMessage('현재 진행 중인 경매가 아닙니다.');
             setOpenError(true);
@@ -149,8 +185,10 @@ export function Info1() {
         );
     }
 
-    // 현재 표시할 가격 (실시간 데이터가 있으면 우선, 없으면 기본 데이터)
-    const displayPrice = isActive ? currentPrice : auctionData.currentPrice;
+    // 현재 표시할 가격 (경매 종료시 최종가격, 실시간 데이터가 있으면 우선, 없으면 기본 데이터)
+    const displayPrice = isAuctionExpired() && auctionData.finalPrice 
+        ? auctionData.finalPrice 
+        : (isActive ? currentPrice : auctionData.currentPrice);
 
     return (
         <>
@@ -161,8 +199,17 @@ export function Info1() {
                 onBackClick={() => navigate(-1)}  // 뒤로 가기 버튼 기능
             />
 
-            {/* 실시간 경매 상태 알림 */}
-            {isActive && (
+            {/* 경매 상태 알림 */}
+            {isAuctionExpired() && (
+                <Box sx={{ p: 2 }}>
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                        🏁 경매가 종료되었습니다. 
+                        {auctionData.finalPrice && `최종 낙찰가: ₩${auctionData.finalPrice.toLocaleString()}`}
+                    </Alert>
+                </Box>
+            )}
+
+            {!isAuctionExpired() && isActive && (
                 <Box sx={{ p: 2 }}>
                     <Alert severity="success" sx={{ mb: 2 }}>
                         🔥 실시간 경매 진행 중! 현재 최고가: ₩{currentPrice.toLocaleString()}
@@ -171,7 +218,7 @@ export function Info1() {
                 </Box>
             )}
 
-            {!isActive && auctionData.status === 'ACTIVE' && (
+            {!isAuctionExpired() && !isActive && auctionData.status === 'ACTIVE' && (
                 <Box sx={{ p: 2 }}>
                     <Alert severity="info" sx={{ mb: 2 }}>
                         경매 시작 대기 중입니다.
@@ -190,14 +237,19 @@ export function Info1() {
             {/* 내 참여 정보 */}
             {isParticipating && (
                 <Box sx={{ p: 2 }}>
-                    <Typography variant="subtitle2" color="primary" gutterBottom>
-                        경매 참여 중
+                    <Typography variant="subtitle2" color={isAuctionExpired() ? "text.primary" : "primary"} gutterBottom>
+                        {isAuctionExpired() ? "경매 참여 완료" : "경매 참여 중"}
                     </Typography>
                     <Typography variant="body2">
-                        내 최고 입찰가: ₩{myHighestBid.toLocaleString()}
+                        내 {isAuctionExpired() ? "최종" : "최고"} 입찰가: ₩{myHighestBid.toLocaleString()}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                        {isMyBid ? '현재 최고가 입찰자입니다!' : '다른 입찰자가 더 높은 가격을 제시했습니다.'}
+                        {isAuctionExpired() 
+                            ? (auctionData.winner_id === user?.uid 
+                                ? '🎉 축하합니다! 낙찰자입니다!' 
+                                : '다른 입찰자가 낙찰받았습니다.')
+                            : (isMyBid ? '현재 최고가 입찰자입니다!' : '다른 입찰자가 더 높은 가격을 제시했습니다.')
+                        }
                     </Typography>
                 </Box>
             )}
@@ -207,20 +259,29 @@ export function Info1() {
                 <Button 
                     variant="contained" 
                     onClick={handleOpen}
-                    disabled={bidding || !user}
+                    disabled={bidding || !user || isAuctionExpired()}
                     fullWidth
                     sx={{ mb: 5,}}
                 >
-                    {bidding ? "입찰 중..." : isParticipating ? "재입찰" : "경매 참여"}
+                    {isAuctionExpired() 
+                        ? "경매 종료" 
+                        : (bidding ? "입찰 중..." : isParticipating ? "재입찰" : "경매 참여")
+                    }
                 </Button>
                 
-                {!user && (
+                {!user && !isAuctionExpired() && (
                     <Typography variant="caption" color="text.secondary">
                         로그인 후 경매에 참여하실 수 있습니다.
                     </Typography>
                 )}
                 
-                {isActive && (
+                {isAuctionExpired() && (
+                    <Typography variant="caption" color="error">
+                        경매가 종료되어 더 이상 입찰할 수 없습니다.
+                    </Typography>
+                )}
+                
+                {!isAuctionExpired() && isActive && (
                     <Typography variant="caption" color="success.main">
                         최소 입찰 금액: ₩{(currentPrice + 1000).toLocaleString()}
                     </Typography>
@@ -273,6 +334,22 @@ export function Info1() {
         >
             <Typography variant='body2'>
                 입찰이 성공적으로 완료되었습니다! 🎉
+            </Typography>
+        </InfoDialog>
+        
+        <InfoDialog
+            open={openExpired}
+            onClose={() => {
+                setOpenExpired(false);
+                // 2초 후 이전 페이지로 이동
+                setTimeout(() => {
+                    navigate(-1);
+                }, 2000);
+            }}
+            confirmText="확인"
+        >
+            <Typography variant='body2'>
+                종료된 경매입니다. 이전 페이지로 이동합니다.
             </Typography>
         </InfoDialog>
         

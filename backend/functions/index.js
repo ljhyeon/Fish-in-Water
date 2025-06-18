@@ -161,9 +161,20 @@ exports.updateAuctionStatus = onSchedule({
   region: 'us-central1'
 }, async (event) => {
   try {
+    // 서울시간 기준 타임스탬프 생성
     const now = new Date();
-    const seoulTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Seoul"}));
-    console.log(`경매 상태 자동 업데이트 시작... (서울시간: ${seoulTime.toISOString()})`);
+    const seoulTimeStr = now.toLocaleString("ko-KR", {
+      timeZone: 'Asia/Seoul',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hourCycle: 'h23'
+    });
+    
+    console.log(`경매 상태 자동 업데이트 시작... (서울시간: ${seoulTimeStr}, UTC: ${now.toISOString()})`);
     
     const activatedAuctions = await auctionService.activatePendingAuctions();
     const finishedAuctions = await auctionService.finishActiveAuctions();
@@ -215,36 +226,9 @@ exports.onAuctionStatusChanged = onDocumentUpdated({
     if (beforeData.status !== afterData.status) {
       console.log(`경매 상태 변경: ${auctionId} - ${beforeData.status} -> ${afterData.status}`);
       
-      // live_auctions 동기화
-      const admin = require('firebase-admin');
-      const rtdb = admin.database();
-      
-      try {
-        // 경매가 ACTIVE 상태로 변경되는 경우 live_auctions에 데이터 생성
-        if (afterData.status === 'ACTIVE') {
-          const liveAuctionData = {
-            auctionId: auctionId,
-            currentPrice: afterData.currentPrice || afterData.startPrice,
-            last_bidder_id: 'none',
-            last_bid_timestamp: Date.now(),
-            status: 'ACTIVE',
-            created_at: Date.now()
-          };
-          
-          await rtdb.ref(`live_auctions/${auctionId}`).set(liveAuctionData);
-          console.log(`live_auctions에 경매 데이터 생성: ${auctionId}`);
-        }
-        
-        // 경매가 종료되는 경우 live_auctions에서 데이터 삭제
-        if (afterData.status === 'FINISHED' || afterData.status === 'NO_BID') {
-          await rtdb.ref(`live_auctions/${auctionId}`).remove();
-          console.log(`live_auctions에서 경매 데이터 삭제: ${auctionId}`);
-        }
-        
-        console.log(`live_auctions 동기화 완료: ${auctionId}`);
-      } catch (syncError) {
-        console.error(`live_auctions 동기화 실패: ${auctionId}`, syncError);
-      }
+      // live_auctions 동기화 로직은 auctionService.updateAuctionInBothDatabases로 중앙화되었으므로
+      // 이 트리거에서의 중복 로직은 제거합니다.
+      // auctionService의 메서드가 호출되면서 필요한 live_auctions 업데이트가 처리됩니다.
     }
     
     return { success: true };
