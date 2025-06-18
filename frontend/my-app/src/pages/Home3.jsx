@@ -1,15 +1,7 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
 import { useTheme } from '@mui/material/styles';
-import AppBar from '@mui/material/AppBar';
-import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
-import Typography from '@mui/material/Typography';
-import Box from '@mui/material/Box';
-import List from '@mui/material/List';
-import Divider from '@mui/material/Divider';
-import Button from '@mui/material/Button';
-import Alert from '@mui/material/Alert';
+import { AppBar, Tabs, Tab, Typography, Box, List, Divider, Button, Alert } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useUserAuctions } from '../hooks/useAuction';

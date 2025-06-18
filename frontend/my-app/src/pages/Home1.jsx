@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Box, Typography, List, Divider, CircularProgress } from '@mui/material';
+import { Box, List, Divider, CircularProgress } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import AuctionItem from '../components/AuctionItem';
 import { getAuctions } from '../services/auctionService';

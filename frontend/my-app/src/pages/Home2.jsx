@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react';
+// import { useState, useEffect } from 'react';
 import { Box, Typography, List, Divider, CircularProgress, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import AuctionItem from '../components/AuctionItem';
-import { useAuth } from '../hooks/useAuth';
+// import { useAuth } from '../hooks/useAuth';
 import { useUserAuctions } from '../hooks/useAuction';
 import { NonData } from '../components/NonData';
 
 export function Home2() {
     const navigate = useNavigate();
-    const { user, userInfo, isAuthenticated } = useAuth();
+    // const { user, userInfo, isAuthenticated } = useAuth();
     
     // 사용자가 참여한 경매 데이터 조회
     const { auctions: participatedAuctions, loading, error } = useUserAuctions('bidder');
