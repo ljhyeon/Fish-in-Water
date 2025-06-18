@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 
 import { Box, Button, Typography, CircularProgress } from "@mui/material"
 
@@ -12,11 +12,36 @@ import { getAuction, getImageUrl } from '../services/auctionService';
 import { useLiveAuctionImproved } from '../hooks/useAuction';
 import { useAuth } from '../hooks/useAuth';
 
+import { getUserFromFirestore } from '../services/userService';
+
+async function getUserSpecificInfo(uid) {
+  try {
+    const userData = await getUserFromFirestore(uid);
+
+    if (userData) {
+      const filteredData = {
+        displayName: userData.displayName,
+        email: userData.email,
+        userType: userData.user_type,
+      };
+      console.log('필터링된 사용자 정보:', filteredData);
+      return filteredData;
+    } else {
+      console.log('사용자 정보를 찾을 수 없습니다.');
+      return null;
+    }
+  } catch (error) {
+    console.error('사용자 정보 조회 및 필터링 실패:', error);
+    throw error;
+  }
+}
+
 export function Info2() {
     const navigate = useNavigate();
     const { user } = useAuth();
+    const location = useLocation();
 
-    const isUserSeller = false; // 낙찰자인지 판매자인지 구분 필요 (false: 낙찰자, true: 판매자)
+    const isUserSeller = location.state?.isSeller;
 
     const { id } = useParams();
 
@@ -26,6 +51,10 @@ export function Info2() {
 
     const [isLoading, setIsLoading] = useState(false);
     const [open, setOpen] = useState(false);
+
+    // 낙찰자 정보를 위한 state 추가
+    const [winnerUser, setWinnerUser] = useState(null);
+    const [loadingWinner, setLoadingWinner] = useState(false);
 
     // 실시간 경매 데이터 및 입찰 기능
     const { 
@@ -62,6 +91,26 @@ export function Info2() {
             fetchAuctionData();
         }
     }, [id]);
+
+     // 낙찰자 정보 로딩 (경매가 완료되고 winner_id가 있을 때)
+    useEffect(() => {
+        const fetchWinnerInfo = async () => {
+            if (auctionData?.winner_id && auctionData.status === "FINISHED") {
+                try {
+                    setLoadingWinner(true);
+                    const winnerInfo = await getUserSpecificInfo(auctionData.winner_id);
+                    setWinnerUser(winnerInfo);
+                } catch (error) {
+                    console.error('낙찰자 정보 로딩 실패:', error);
+                    setWinnerUser(null);
+                } finally {
+                    setLoadingWinner(false);
+                }
+            }
+        };
+
+        fetchWinnerInfo();
+    }, [auctionData?.winner_id, auctionData?.status]);
 
     // 실시간 데이터 변경 감지 및 로그
     useEffect(() => {
@@ -119,10 +168,10 @@ export function Info2() {
 
     // 현재 표시할 가격 (실시간 데이터가 있으면 우선, 없으면 최종 가격 또는 기본 가격)
     const displayPrice = isActive ? currentPrice : (auctionData.finalPrice || auctionData.currentPrice);
-    
-    const shouldShowButton = auctionData?.finalPrice && (
-        isUserSeller || // 판매자면 항상 보여줌 (낙찰자 정보 확인)
-        (!isUserSeller && auctionData?.status?.consumer !== "낙찰/결제완료") // 구매자면 결제완료가 아닐 때만
+
+    const shouldShowButton = auctionData.status === "FINISHED" && (
+        isUserSeller || // 판매자면 낙찰자 정보 확인 보여줌
+        (!isUserSeller && auctionData.is_payment_completed === false) // 구매자면 결제완료가 아닐 때만
     );
 
 
@@ -156,9 +205,12 @@ export function Info2() {
                             내 최고 입찰가: ₩{myHighestBid.toLocaleString()}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                            {auctionData.winner_id === user?.uid 
-                                ? '🎉 축하합니다! 낙찰되었습니다!' 
-                                : '아쉽게도 낙찰되지 못했습니다.'
+                            {auctionData.displayStatus === "ACTIVE" ?
+                                `경매 진행 중입니다. 현재 최고 입찰가는 ${currentPrice.toLocaleString()} 원입니다.` : (
+                                    auctionData.winner_id === user?.uid 
+                                    ? '🎉 축하합니다! 낙찰되었습니다!' 
+                                    : '아쉽게도 낙찰되지 못했습니다.'
+                                )
                             }
                         </Typography>
                     </Box>
@@ -186,14 +238,13 @@ export function Info2() {
                     </Typography>
                     {/* 낙찰자 이름으로 변경 */}
                     <Typography variant="body2" sx={{ color: 'grey.700' }}>
-                        홍길동
+                        {winnerUser?.displayName}
                     </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                     <Typography variant="overline" sx={{ color: 'grey.700' }}>
                         최종 낙찰 금액
                     </Typography>
-                    {/* 낙찰 금액으로 변경 */}
                     <Typography variant="body2" sx={{ color: 'grey.700' }}>
                         {displayPrice?.toLocaleString('ko-KR') || 0} 원
                     </Typography>

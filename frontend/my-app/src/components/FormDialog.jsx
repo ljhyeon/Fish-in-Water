@@ -1,5 +1,5 @@
 import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Box, Typography } from '@mui/material';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 /**
  * @typedef {{
@@ -40,6 +40,14 @@ export default function FormDialog({
     const [formData, setFormData] = useState({});
     const [errors, setErrors] = useState({});
 
+    // 다이얼로그가 열릴 때 폼 데이터 초기화
+    useEffect(() => {
+        if (open) {
+            setFormData({});
+            setErrors({});
+        }
+    }, [open]);
+
     // 사업자 등록번호 유효성 검증
     const validateBusinessNumber = (value) => {
         const businessNumberRegex = /^\d{3}-\d{2}-\d{5}$/;
@@ -63,6 +71,18 @@ export default function FormDialog({
         }
     };
 
+    // 숫자 천단위 구분자 포맷팅
+    const formatNumberWithCommas = (value) => {
+        // 숫자만 추출
+        const numbers = value.replace(/[^\d]/g, '');
+        
+        // 빈 문자열이면 그대로 반환
+        if (!numbers) return '';
+        
+        // 천단위 구분자 추가
+        return parseInt(numbers).toLocaleString();
+    };
+
     // 필드 값 변경 핸들러
     const handleFieldChange = (fieldName, value, fieldType) => {
         let processedValue = value;
@@ -70,6 +90,11 @@ export default function FormDialog({
         // 사업자 등록번호 자동 포맷팅
         if (fieldName === 'businessNumber' && fieldType !== 'file') {
             processedValue = formatBusinessNumber(value);
+        }
+
+        // 입찰 금액 천단위 구분자 포맷팅
+        if (fieldName === 'bid' && fieldType !== 'file') {
+            processedValue = formatNumberWithCommas(value);
         }
         
         setFormData(prev => ({
@@ -105,7 +130,14 @@ export default function FormDialog({
                 const fileInput = event.currentTarget.querySelector(`input[name="${field.name}"]`);
                 formJson[field.name] = fileInput.files[0] || null;
             } else {
-                formJson[field.name] = formDataObj.get(field.name);
+                let value = formDataObj.get(field.name);
+                
+                // 입찰 금액의 경우 콤마 제거하고 숫자로 변환
+                if (field.name === 'bid') {
+                    value = value.replace(/,/g, '');
+                }
+                
+                formJson[field.name] = value;
             }
         }
 

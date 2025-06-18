@@ -1,8 +1,9 @@
 import * as React from 'react';
-import { Box, Typography, List, Divider, CircularProgress } from '@mui/material';
+import { Box, List, Divider, CircularProgress } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import AuctionItem from '../components/AuctionItem';
 import { getAuctions } from '../services/auctionService';
+import { NonData } from '../components/NonData';
 
 export function Home1() {
     const navigate = useNavigate();
@@ -63,19 +64,9 @@ export function Home1() {
 
         if (!auctions || auctions.length === 0) {
             return (
-                <Box sx={{ 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    justifyContent: 'center', 
-                    alignItems: 'center', 
-                    height: '100%', 
-                    gap: 2 
-                }}>
-                    <img src="/non_fish.svg" style={{ width: '300px', height: 'auto' }} />
-                    <Typography variant="body1" color="text.secondary">
-                        현재 진행중인 경매가 없어요!
-                    </Typography>
-                </Box>
+                <NonData>
+                    현재 진행중인 경매가 없어요!
+                </NonData>
             );
         }
 
