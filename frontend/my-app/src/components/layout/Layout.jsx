@@ -130,11 +130,11 @@ export function Layout({ description, children }) {
 
             {/* 메인 컨텐츠 영역 */}
             <Box sx={{ 
-                pt: '102px', // 상단바 높이(100px) + 여유공간(16px)
-                pb: '56px',  // 하단 네비게이션 높이
+                flex: 1, // 남은 공간을 모두 차지
+                marginTop: '102px', // 상단바 높이만큼 마진
+                marginBottom: '80px', // 하단 네비게이션 높이만큼 마진
                 overflow: 'auto', // 스크롤 가능
-                width: '100vw',
-                height: '100vh'
+                minHeight: 0, // flexbox에서 overflow 작동을 위해 필요
             }}>
                 {children}
             </Box>
@@ -147,6 +147,7 @@ export function Layout({ description, children }) {
                 bottom: 0,
                 borderTop: 1,
                 borderColor: 'divider',
+                height: '80px',
             }}
             value={value}
             onChange={handleChange}
