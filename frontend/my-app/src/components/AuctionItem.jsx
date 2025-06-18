@@ -1,7 +1,8 @@
 import { ListItem, ListItemText, ListItemAvatar, Avatar, Typography, Box } from '@mui/material';
 import ColoredChip from './ColoredChip';
 
-export default function AuctionItem({ item, isSupplier = false, onClick, pageType = 'home3' }) {
+export default function AuctionItem({ item, isSupplier = false, onClick, pageType = 'home3', seller=false, }) {
+    console.log(item);
     const getStatusColor = (status) => {
         switch (status) {
             case '진행중':
@@ -22,9 +23,34 @@ export default function AuctionItem({ item, isSupplier = false, onClick, pageTyp
         }
     };
 
+    const getStatus = (status, paid, settled, seller) => {
+        switch (status) {
+            case 'ACTIVE':
+                return '진행중';
+            case 'PENDING':
+                return '진행 예정';
+            case 'FINISHED':
+                if (seller) {
+                    if (settled) return '완료';
+                    else return '정산 대기중';
+                }
+                if (paid) return '낙찰 / 결제 완료';
+                else return '낙찰 / 결제 대기중';
+            case 'NO_BID':
+                return '유찰';
+            default:
+                return status;
+        }
+    }
+
     // Firebase 데이터 구조에 맞게 상태 처리
     const status = item.displayStatus || item.status || (isSupplier ? item.status?.supplier : item.status?.consumer);
-    const statusColor = getStatusColor(status);
+    const paid = item.is_payment_completed;
+    const settled = item.is_settlement_completed;
+    const statusColor = getStatusColor(status, paid, settled);
+    const statusLabel = getStatus(status, paid, settled, seller);
+
+    console.log(status);
 
     const renderContent = () => {
         switch (pageType) {
@@ -49,7 +75,8 @@ export default function AuctionItem({ item, isSupplier = false, onClick, pageTyp
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, ml: 3 }}>
                         <Typography variant="h6">{item.name}</Typography>
                         <ColoredChip 
-                            label={status} 
+                            // label={status} 
+                            label={statusLabel}
                             color={statusColor.color}
                             colorVariant={statusColor.variant}
                             size="small"

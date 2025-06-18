@@ -185,19 +185,18 @@ export function Home3() {
             auction_start_time: formatFirestoreDate(auction.auction_start_time),
             auction_end_time: formatFirestoreDate(auction.auction_end_time),
             seller: auction.seller,
-            displayStatus: displayStatus // 문자열로 설정
+            displayStatus: displayStatus, // 문자열로 설정
+            is_payment_completed: auction.is_payment_completed,
+            is_settlement_completed: auction.is_settlement_completed,
         };
     };
 
     const renderContent = () => {
         if (!isAuthenticated) {
             return (
-                <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100%', gap: 2 }}>
-                    <img src="/non_fish.svg" style={{ width: '300px', height: 'auto' }} />
-                    <Typography variant="body1" color="text.secondary">
-                        로그인 후 참여한 경매를 확인하실 수 있습니다.
-                    </Typography>
-                </Box>
+                <NonData>
+                    로그인 후 참여한 경매를 확인하실 수 있습니다.
+                </NonData>
             );
         }
 
@@ -219,12 +218,9 @@ export function Home3() {
                                 일반적으로 몇 분 내에 완료됩니다.
                             </Typography>
                         </Alert>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '200px', gap: 2 }}>
-                            <img src="/non_fish.svg" style={{ width: '200px', height: 'auto' }} />
-                            <Typography variant="body2" color="text.secondary">
-                                인덱스 생성이 완료되면 경매 목록이 표시됩니다.
-                            </Typography>
-                        </Box>
+                        <NonData>
+                            인덱스 생성이 완료되면 경매 목록이 표시됩니다.
+                        </NonData>
                     </Box>
                 );
             } else {
@@ -401,6 +397,7 @@ export function Home3() {
                     justifyContent: 'flex-start', 
                     alignItems: 'center', 
                     height: '100%',
+                    minHeight: 'calc(100vh - 180px)',
                     pt: 6,
                     gap: 3
                 }}>
@@ -577,6 +574,7 @@ export function Home3() {
                                     item={item} 
                                     isSupplier={true} 
                                     onClick={() => navigate(`/info2/${item.id}`)}
+                                    seller={true}
                                 />
                                 <Divider variant="inset" component="li" />
                             </React.Fragment>
