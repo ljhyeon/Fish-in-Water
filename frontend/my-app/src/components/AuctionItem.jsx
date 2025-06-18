@@ -2,7 +2,6 @@ import { ListItem, ListItemText, ListItemAvatar, Avatar, Typography, Box } from 
 import ColoredChip from './ColoredChip';
 
 export default function AuctionItem({ item, isSupplier = false, onClick, pageType = 'home3', seller=false, }) {
-    console.log(item);
     const getStatusColor = (status) => {
         switch (status) {
             case '진행중':
@@ -49,8 +48,6 @@ export default function AuctionItem({ item, isSupplier = false, onClick, pageTyp
     const settled = item.is_settlement_completed;
     const statusColor = getStatusColor(status, paid, settled);
     const statusLabel = getStatus(status, paid, settled, seller);
-
-    console.log(status);
 
     const renderContent = () => {
         switch (pageType) {

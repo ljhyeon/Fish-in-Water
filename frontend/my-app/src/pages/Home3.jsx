@@ -262,7 +262,8 @@ export function Home3() {
                         <AuctionItem 
                             item={item} 
                             isSupplier={false} 
-                            onClick={() => navigate(`/info2/${item.id}`)}
+                            // onClick={() => navigate(`/info2/${item.id}`)}
+                            onClick={() => navigate(`/info2/${item.id}`, { state: { isSeller: false } })}
                         />
                         {index < participatedAuctions.length - 1 && <Divider variant="inset" component="li" />}
                     </React.Fragment>
@@ -573,7 +574,8 @@ export function Home3() {
                                 <AuctionItem 
                                     item={item} 
                                     isSupplier={true} 
-                                    onClick={() => navigate(`/info2/${item.id}`)}
+                                    // onClick={() => navigate(`/info2/${item.id}`)}
+                                    onClick={() => navigate(`/info2/${item.id}`, { state: { isSeller: true } })}
                                     seller={true}
                                 />
                                 <Divider variant="inset" component="li" />
