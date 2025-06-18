@@ -124,4 +124,35 @@ export const validateImageFile = (file) => {
   }
   
   return result;
+};
+
+/**
+ * 서버 업로드용 이미지 최적화
+ * @param {File} file - 원본 이미지 파일
+ * @returns {Promise<File>} 최적화된 이미지 파일
+ */
+export const optimizeImageForUpload = async (file) => {
+  // 파일 크기에 따른 동적 압축 설정
+  const fileSizeMB = file.size / 1024 / 1024;
+  
+  let maxWidth, maxHeight, quality;
+  
+  if (fileSizeMB > 3) {
+    // 3MB 이상: 매우 강한 압축
+    maxWidth = 500;
+    maxHeight = 375;
+    quality = 0.4;
+  } else if (fileSizeMB > 1) {
+    // 1-3MB: 강한 압축
+    maxWidth = 600;
+    maxHeight = 450;
+    quality = 0.5;
+  } else {
+    // 1MB 이하: 중간 압축
+    maxWidth = 700;
+    maxHeight = 525;
+    quality = 0.6;
+  }
+  
+  return resizeImage(file, maxWidth, maxHeight, quality);
 }; 
