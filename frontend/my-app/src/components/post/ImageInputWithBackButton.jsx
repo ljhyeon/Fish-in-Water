@@ -45,7 +45,7 @@ export function ImageInputWithBackButton({
                     style={{
                         width: '100%',
                         height: '100%',
-                        objectFit: 'cover',
+                        objectFit: 'contain',
                         display: 'block'
                     }}
                     onClick={handleImageClick}

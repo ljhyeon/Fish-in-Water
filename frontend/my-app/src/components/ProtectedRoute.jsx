@@ -6,6 +6,12 @@ import { useAuth } from '../hooks/useAuth';
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading, user, getUserInfo } = useAuth();
 
+  // Zustand에 인증된 사용자가 있으면 로딩 상태 건너뛰기
+  if (isAuthenticated && user) {
+    // console.log('✅ Zustand에서 인증된 사용자 확인됨');
+    return children;
+  }
+
   if (loading) {
     return (
       <Box 
@@ -13,7 +19,7 @@ const ProtectedRoute = ({ children }) => {
         flexDirection="column"
         justifyContent="center" 
         alignItems="center" 
-        minHeight="50vh"
+        minHeight="100vh"
         gap={2}
       >
         <CircularProgress size={40} />
@@ -28,17 +34,6 @@ const ProtectedRoute = ({ children }) => {
     console.log('🚫 인증되지 않은 사용자, 로그인 페이지로 이동');
     return <Navigate to="/login" replace />;
   }
-
-  // 인증된 사용자의 정보를 콘솔에 출력
-  const userInfo = getUserInfo();
-  console.log('✅ 인증된 사용자 정보:', {
-    uid: userInfo.uid,
-    email: userInfo.email,
-    displayName: userInfo.displayName,
-    photoURL: userInfo.photoURL,
-    emailVerified: userInfo.emailVerified,
-    loginTime: new Date().toLocaleString()
-  });
 
   return children;
 };

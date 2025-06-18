@@ -127,4 +127,54 @@ export const updateSellerVerification = async (uid, isVerified) => {
     console.error('판매자 인증 상태 업데이트 실패:', error);
     throw new Error('인증 상태 업데이트에 실패했습니다.');
   }
+};
+
+/**
+ * 소비자를 판매자로 전환하고 사업자 등록 서류 업로드
+ * @param {string} uid - 사용자 UID
+ * @param {string} businessName - 사업자명
+ * @param {string} businessNumber - 사업자 등록번호
+ * @param {File} businessLicense - 사업자 등록증 파일
+ */
+export const convertToSeller = async (uid, businessName, businessNumber, businessLicense) => {
+  try {
+    let documentUrl = null;
+    
+    // 파일 업로드는 임시로 비활성화 (CORS 오류 해결 후 활성화)
+    if (businessLicense && false) { // false를 추가해서 임시로 비활성화
+      try {
+        const fileName = `seller_docs/${uid}_${Date.now()}.${businessLicense.name.split('.').pop()}`;
+        const storageRef = ref(storage, fileName);
+        
+        const uploadResult = await uploadBytes(storageRef, businessLicense);
+        documentUrl = await getDownloadURL(uploadResult.ref);
+      } catch (uploadError) {
+        console.warn('파일 업로드 실패, 텍스트 정보만 저장:', uploadError);
+        // 파일 업로드 실패해도 판매자 전환은 계속 진행
+      }
+    }
+    
+    // Firestore에서 사용자 타입을 seller로 변경하고 판매자 정보 추가
+    const userRef = doc(db, 'users', uid);
+    await updateDoc(userRef, {
+      user_type: 'seller',
+      seller_info: {
+        is_verified: true, // 일단 무조건 승인으로 설정
+        business_name: businessName,
+        business_registration_number: businessNumber,
+        document_url: documentUrl || '파일 업로드 보류',
+        file_name: businessLicense ? businessLicense.name : null,
+        verified_at: serverTimestamp(),
+        submitted_at: serverTimestamp()
+      }
+    });
+    
+    // 업데이트된 사용자 정보 반환
+    const updatedUserDoc = await getDoc(userRef);
+    console.log('소비자를 판매자로 전환 완료:', uid);
+    return updatedUserDoc.data();
+  } catch (error) {
+    console.error('판매자 전환 실패:', error);
+    throw new Error('판매자 전환에 실패했습니다.');
+  }
 }; 

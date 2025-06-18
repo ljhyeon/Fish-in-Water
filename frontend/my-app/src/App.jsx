@@ -114,7 +114,7 @@ function AppContent() {
   if (shouldShowLayout) {
     return (
       <Layout description={currentDescription}>
-        <Container disableGutters>
+        <Container disableGutters sx={{height: '100%'}}>
           {content}
         </Container>
       </Layout>

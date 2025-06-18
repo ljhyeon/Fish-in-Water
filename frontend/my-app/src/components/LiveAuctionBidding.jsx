@@ -13,22 +13,27 @@ import {
   List,
   ListItem,
   ListItemText,
-  InputAdornment
+  InputAdornment,
+  Divider,
+  Badge
 } from '@mui/material';
 import {
   Gavel,
   Timer,
   Person,
   TrendingUp,
-  LocalAtm
+  LocalAtm,
+  History,
+  EmojiEvents
 } from '@mui/icons-material';
-import { useLiveAuction } from '../hooks/useAuction';
+import { useLiveAuctionImproved } from '../hooks/useAuction';
 import { useAuth } from '../hooks/useAuth';
 
 const LiveAuctionBidding = ({ auctionId, auction }) => {
   const { user, userInfo } = useAuth();
   const { 
     liveData, 
+    bidHistory,
     loading, 
     error, 
     bidding, 
@@ -36,11 +41,15 @@ const LiveAuctionBidding = ({ auctionId, auction }) => {
     isActive, 
     currentPrice, 
     lastBidderId, 
-    isMyBid 
-  } = useLiveAuction(auctionId);
+    isMyBid,
+    isParticipating,
+    myHighestBid,
+    bidCount 
+  } = useLiveAuctionImproved(auctionId);
   
   const [bidAmount, setBidAmount] = useState('');
   const [bidError, setBidError] = useState('');
+  const [showHistory, setShowHistory] = useState(false);
 
   // 최소 입찰 단위 (1000원)
   const minBidIncrement = 1000;
@@ -60,8 +69,8 @@ const LiveAuctionBidding = ({ auctionId, auction }) => {
   const handlePlaceBid = async () => {
     const amount = parseInt(bidAmount);
     
-    if (!amount || amount <= currentPrice) {
-      setBidError(`최소 ${(currentPrice + minBidIncrement).toLocaleString()}원 이상 입찰해주세요.`);
+    if (!amount || amount < suggestedBidAmount) {
+      setBidError(`최소 ${suggestedBidAmount.toLocaleString()}원 이상 입찰해주세요.`);
       return;
     }
 
@@ -77,6 +86,22 @@ const LiveAuctionBidding = ({ auctionId, auction }) => {
   const formatTime = (timestamp) => {
     if (!timestamp) return '';
     return new Date(timestamp).toLocaleTimeString();
+  };
+
+  const formatRelativeTime = (timestamp) => {
+    if (!timestamp) return '';
+    const now = Date.now();
+    const diff = now - timestamp;
+    const seconds = Math.floor(diff / 1000);
+    const minutes = Math.floor(seconds / 60);
+    
+    if (minutes > 0) {
+      return `${minutes}분 전`;
+    } else if (seconds > 0) {
+      return `${seconds}초 전`;
+    } else {
+      return '방금 전';
+    }
   };
 
   const getStatusColor = (status) => {
@@ -139,6 +164,11 @@ const LiveAuctionBidding = ({ auctionId, auction }) => {
             <Typography variant="h5" component="h2">
               실시간 경매
             </Typography>
+            {bidCount > 0 && (
+              <Badge badgeContent={bidCount} color="primary" sx={{ ml: 2 }}>
+                <History />
+              </Badge>
+            )}
           </Box>
           <Chip 
             label={getStatusText(auction.status)}
@@ -153,10 +183,10 @@ const LiveAuctionBidding = ({ auctionId, auction }) => {
             {auction.name}
           </Typography>
           <Typography variant="body2" color="text.secondary" gutterBottom>
-            {auction.location} • {auction.species}
+            {auction.origin} • {auction.species}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            판매자: {auction.seller_name}
+            판매자: {auction.seller?.name}
           </Typography>
         </Box>
 
@@ -184,7 +214,7 @@ const LiveAuctionBidding = ({ auctionId, auction }) => {
               {lastBidderId !== 'none' && (
                 <Box sx={{ textAlign: 'right' }}>
                   <Chip 
-                    icon={<Person />}
+                    icon={isMyBid ? <EmojiEvents /> : <Person />}
                     label={isMyBid ? '내 입찰' : '다른 입찰자'}
                     color={isMyBid ? 'secondary' : 'default'}
                     variant="outlined"
@@ -192,82 +222,128 @@ const LiveAuctionBidding = ({ auctionId, auction }) => {
                   />
                   {liveData?.last_bid_timestamp && (
                     <Typography variant="caption" display="block" sx={{ mt: 0.5 }}>
-                      {formatTime(liveData.last_bid_timestamp)}
+                      {formatRelativeTime(liveData.last_bid_timestamp)}
                     </Typography>
                   )}
                 </Box>
               )}
             </Box>
 
-            {/* 입찰하기 */}
-            {user && userInfo?.user_type === 'consumer' ? (
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="h6" gutterBottom>
-                  입찰하기
+            {/* 내 참여 정보 */}
+            {isParticipating && (
+              <Box sx={{ 
+                bgcolor: 'info.light', 
+                color: 'info.contrastText',
+                p: 2, 
+                borderRadius: 1, 
+                mb: 3 
+              }}>
+                <Typography variant="body2" gutterBottom>
+                  내 참여 정보
                 </Typography>
-                
-                {/* 빠른 입찰 버튼들 */}
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="body2" color="text.secondary" gutterBottom>
-                    빠른 입찰
-                  </Typography>
-                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                    {[
-                      suggestedBidAmount,
-                      suggestedBidAmount + 5000,
-                      suggestedBidAmount + 10000,
-                      suggestedBidAmount + 20000
-                    ].map((amount) => (
-                      <Button
-                        key={amount}
-                        variant="outlined"
-                        size="small"
-                        onClick={() => handleQuickBid(amount)}
-                        startIcon={<TrendingUp />}
-                      >
-                        ₩{amount.toLocaleString()}
-                      </Button>
-                    ))}
-                  </Box>
-                </Box>
-
-                {/* 입찰 금액 입력 */}
-                <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-                  <TextField
-                    fullWidth
-                    label="입찰 금액"
-                    value={bidAmount}
-                    onChange={handleBidAmountChange}
-                    placeholder={suggestedBidAmount.toLocaleString()}
-                    InputProps={{
-                      startAdornment: <InputAdornment position="start">₩</InputAdornment>,
-                    }}
-                    error={!!bidError}
-                    helperText={bidError || `최소 입찰가: ₩${suggestedBidAmount.toLocaleString()}`}
-                  />
-                </Box>
-
-                <Button
-                  variant="contained"
-                  color="primary"
-                  size="large"
-                  fullWidth
-                  onClick={handlePlaceBid}
-                  disabled={bidding || !bidAmount}
-                  startIcon={<LocalAtm />}
-                  sx={{ py: 1.5 }}
-                >
-                  {bidding ? '입찰 중...' : `₩${parseInt(bidAmount || 0).toLocaleString()} 입찰하기`}
-                </Button>
+                <Typography variant="h6">
+                  최고 입찰가: ₩{myHighestBid.toLocaleString()}
+                </Typography>
+                <Typography variant="body2">
+                  {isMyBid ? '현재 최고가 입찰자입니다!' : '다른 입찰자가 더 높은 가격을 제시했습니다.'}
+                </Typography>
               </Box>
-            ) : (
-              <Alert severity="info" sx={{ mb: 3 }}>
-                {!user ? '로그인 후 입찰에 참여하실 수 있습니다.' : 
-                 userInfo?.user_type === 'seller' ? '판매자는 입찰에 참여할 수 없습니다.' : 
-                 '구매자 계정으로 로그인해야 입찰할 수 있습니다.'}
-              </Alert>
             )}
 
+            {/* 입찰 히스토리 토글 */}
+            <Box sx={{ mb: 3 }}>
+              <Button
+                variant="outlined"
+                startIcon={<History />}
+                onClick={() => setShowHistory(!showHistory)}
+                size="small"
+              >
+                입찰 히스토리 ({bidCount})
+              </Button>
+              
+              {showHistory && (
+                <Box sx={{ mt: 2, maxHeight: 200, overflow: 'auto' }}>
+                  <List dense>
+                    {bidHistory.map((bid, index) => (
+                      <ListItem key={bid.id} divider>
+                        <ListItemText
+                          primary={`₩${bid.amount.toLocaleString()}`}
+                          secondary={formatTime(bid.timestamp)}
+                        />
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          {bid.bidder_id === user?.uid ? (
+                            <Chip label="내 입찰" size="small" color="primary" />
+                          ) : (
+                            <Chip label={`입찰자 ${index + 1}`} size="small" variant="outlined" />
+                          )}
+                          {index === 0 && (
+                            <EmojiEvents sx={{ ml: 1, color: 'gold' }} />
+                          )}
+                        </Box>
+                      </ListItem>
+                    ))}
+                  </List>
+                </Box>
+              )}
+            </Box>
+
+            <Divider sx={{ mb: 3 }} />
+
+            {/* 입찰 입력 섹션 */}
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                입찰하기
+              </Typography>
+              
+              {/* 빠른 입찰 버튼들 */}
+              <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+                {[
+                  suggestedBidAmount,
+                  suggestedBidAmount + 5000,
+                  suggestedBidAmount + 10000,
+                  suggestedBidAmount + 20000
+                ].map((amount) => (
+                  <Button
+                    key={amount}
+                    variant="outlined"
+                    size="small"
+                    onClick={() => handleQuickBid(amount)}
+                    disabled={bidding}
+                  >
+                    ₩{amount.toLocaleString()}
+                  </Button>
+                ))}
+              </Box>
+
+              {/* 입찰 금액 입력 */}
+              <TextField
+                fullWidth
+                label="입찰 금액"
+                value={bidAmount}
+                onChange={handleBidAmountChange}
+                error={!!bidError}
+                helperText={bidError || `최소 입찰 금액: ₩${suggestedBidAmount.toLocaleString()}`}
+                InputProps={{
+                  startAdornment: <InputAdornment position="start">₩</InputAdornment>,
+                }}
+                disabled={bidding}
+                sx={{ mb: 2 }}
+              />
+
+              {/* 입찰 버튼 */}
+              <Button
+                fullWidth
+                variant="contained"
+                size="large"
+                onClick={handlePlaceBid}
+                disabled={bidding || !bidAmount}
+                startIcon={bidding ? <LocalAtm /> : <TrendingUp />}
+              >
+                {bidding ? '입찰 중...' : '입찰하기'}
+              </Button>
+            </Box>
+
+            {/* 에러 메시지 */}
             {error && (
               <Alert severity="error" sx={{ mb: 2 }}>
                 {error}
@@ -275,31 +351,9 @@ const LiveAuctionBidding = ({ auctionId, auction }) => {
             )}
           </>
         ) : (
-          /* 경매 비활성 상태 */
-          <Box sx={{ textAlign: 'center', py: 4 }}>
-            <Typography variant="h6" color="text.secondary" gutterBottom>
-              {auction.status === 'PENDING' ? '경매 시작 예정' : '경매가 종료되었습니다'}
-            </Typography>
-            
-            {auction.status === 'PENDING' && (
-              <Typography variant="body2" color="text.secondary">
-                시작 시간: {new Date(auction.start_time?.seconds * 1000).toLocaleString()}
-              </Typography>
-            )}
-            
-            {auction.status === 'FINISHED' && (
-              <Box>
-                <Typography variant="h5" color="primary.main" gutterBottom>
-                  최종 낙찰가: ₩{auction.final_price?.toLocaleString() || '유찰'}
-                </Typography>
-                {auction.winner_id && (
-                  <Typography variant="body2" color="text.secondary">
-                    낙찰자가 결정되었습니다
-                  </Typography>
-                )}
-              </Box>
-            )}
-          </Box>
+          <Alert severity="info">
+            이 경매는 현재 진행 중이 아닙니다.
+          </Alert>
         )}
       </CardContent>
     </Card>

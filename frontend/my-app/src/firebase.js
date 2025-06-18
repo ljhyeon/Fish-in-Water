@@ -3,6 +3,7 @@ import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getDatabase } from 'firebase/database';
+import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
 
 // Firebase 설정 객체 (환경 변수 사용)
 const firebaseConfig = {
@@ -24,6 +25,13 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const rtdb = getDatabase(app);
+// 서버리스 자동화 프로세스용 Functions 연결
+export const functions = getFunctions(app);
+
+// 개발 환경에서 Functions 에뮬레이터 연결
+if (import.meta.env.DEV) {
+  connectFunctionsEmulator(functions, 'localhost', 5001);
+}
 
 // Google Auth Provider 설정
 export const googleProvider = new GoogleAuthProvider();

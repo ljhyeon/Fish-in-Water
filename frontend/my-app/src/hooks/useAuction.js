@@ -3,9 +3,12 @@ import {
   getAuctions, 
   getAuction, 
   getUserAuctions, 
+  getUserParticipatedAuctions,
   createAuction,
-  placeBid,
-  subscribeLiveAuction 
+  placeBidImproved,
+  subscribeLiveAuction,
+  getBidHistory,
+  subscribeBidHistory 
 } from '../services/auctionService';
 import { useAuth } from './useAuth';
 
@@ -49,7 +52,7 @@ export const useAuctions = (status = 'ALL', limit = 50) => {
  * @param {string} type - 'seller' 또는 'bidder'
  */
 export const useUserAuctions = (type = 'seller') => {
-  const { user } = useAuth();
+  const { user, userInfo } = useAuth();
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -60,7 +63,16 @@ export const useUserAuctions = (type = 'seller') => {
     try {
       setLoading(true);
       setError(null);
-      const auctionList = await getUserAuctions(user.uid, type);
+      
+      let auctionList;
+      if (type === 'bidder') {
+        // bid_history 기반으로 참여한 경매 조회
+        auctionList = await getUserParticipatedAuctions(user.uid, userInfo?.user_type);
+      } else {
+        // 기존 방식으로 판매자의 경매 조회
+        auctionList = await getUserAuctions(user.uid, type, userInfo?.user_type);
+      }
+      
       setAuctions(auctionList);
     } catch (err) {
       setError(err.message);
@@ -75,7 +87,7 @@ export const useUserAuctions = (type = 'seller') => {
     } else {
       setAuctions([]);
     }
-  }, [user, type]);
+  }, [user, type, userInfo]);
 
   return {
     auctions,
@@ -122,17 +134,18 @@ export const useAuction = (auctionId) => {
 };
 
 /**
- * 실시간 경매 입찰 관리 훅
+ * 개선된 실시간 경매 입찰 관리 훅
  * @param {string} auctionId - 경매 ID
  */
-export const useLiveAuction = (auctionId) => {
+export const useLiveAuctionImproved = (auctionId) => {
   const { user } = useAuth();
   const [liveData, setLiveData] = useState(null);
+  const [bidHistory, setBidHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [bidding, setBidding] = useState(false);
 
-  // 실시간 데이터 구독
+  // 실시간 경매 데이터 구독
   useEffect(() => {
     if (!auctionId) return;
 
@@ -145,7 +158,18 @@ export const useLiveAuction = (auctionId) => {
     return unsubscribe;
   }, [auctionId]);
 
-  // 입찰하기
+  // 입찰 히스토리 구독
+  useEffect(() => {
+    if (!auctionId) return;
+
+    const unsubscribe = subscribeBidHistory(auctionId, (history) => {
+      setBidHistory(history);
+    }, 20); // 최근 20개 입찰 히스토리
+
+    return unsubscribe;
+  }, [auctionId]);
+
+  // 개선된 입찰하기
   const bid = async (amount) => {
     if (!user) {
       throw new Error('로그인이 필요합니다.');
@@ -155,15 +179,18 @@ export const useLiveAuction = (auctionId) => {
       throw new Error('경매 정보를 불러올 수 없습니다.');
     }
 
-    if (amount <= liveData.current_price) {
-      throw new Error('입찰 금액이 현재 최고가보다 낮습니다.');
+    const minBidAmount = liveData.currentPrice + 1000; // 최소 입찰 단위
+    if (amount < minBidAmount) {
+      throw new Error(`최소 ${minBidAmount.toLocaleString()}원 이상 입찰해주세요.`);
     }
 
     try {
       setBidding(true);
       setError(null);
-      await placeBid(auctionId, user.uid, amount);
-      return true;
+      
+      // 개선된 입찰 함수 사용
+      const result = await placeBidImproved(auctionId, user.uid, amount);
+      return result;
     } catch (err) {
       setError(err.message);
       throw err;
@@ -172,16 +199,28 @@ export const useLiveAuction = (auctionId) => {
     }
   };
 
+  // 내 입찰 참여 여부 확인
+  const isParticipating = bidHistory.some(bid => bid.bidder_id === user?.uid);
+  
+  // 내 최고 입찰가
+  const myHighestBid = bidHistory
+    .filter(bid => bid.bidder_id === user?.uid)
+    .reduce((max, bid) => Math.max(max, bid.amount), 0);
+
   return {
     liveData,
+    bidHistory,
     loading,
     error,
     bidding,
     bid,
     isActive: !!liveData,
-    currentPrice: liveData?.current_price || 0,
+    currentPrice: liveData?.currentPrice || 0,
     lastBidderId: liveData?.last_bidder_id || null,
-    isMyBid: liveData?.last_bidder_id === user?.uid
+    isMyBid: liveData?.last_bidder_id === user?.uid,
+    isParticipating,
+    myHighestBid,
+    bidCount: bidHistory.length
   };
 };
 

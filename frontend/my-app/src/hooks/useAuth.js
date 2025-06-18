@@ -22,12 +22,20 @@ export const useAuth = () => {
 
   useEffect(() => {
     let mounted = true;
+    
+    // Zustand 스토어에 이미 인증된 사용자가 있으면 Firebase 인증 확인 건너뛰기
+    if (user && userInfo && isAuthenticated) {
+      console.log('✅ Zustand에서 인증된 사용자 정보 발견, Firebase 확인 건너뛰기');
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
 
     // Firebase 인증 상태 변화 감지
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (mounted) {
-        console.log('Auth state changed:', firebaseUser ? 'Logged in' : 'Logged out');
+        console.log('🔄 Firebase Auth state changed:', firebaseUser ? 'Logged in' : 'Logged out');
         setUser(firebaseUser);
         
         if (firebaseUser) {
@@ -37,8 +45,8 @@ export const useAuth = () => {
             setUserInfo(firestoreUserInfo);
             
             if (firestoreUserInfo) {
-              // 기존 사용자 - 마지막 로그인 시간 업데이트
-              await saveUserToFirestore(firebaseUser, firestoreUserInfo.user_type, false);
+              // 기존 사용자 - 마지막 로그인 시간 업데이트는 필요시에만
+              // await saveUserToFirestore(firebaseUser, firestoreUserInfo.user_type, false);
             }
           } catch (error) {
             console.error('Firestore 사용자 정보 조회 실패:', error);
@@ -56,7 +64,7 @@ export const useAuth = () => {
       mounted = false;
       unsubscribe();
     };
-  }, [setUser, setLoading, setUserInfo]);
+  }, [user, userInfo, isAuthenticated, setUser, setLoading, setUserInfo, setError]);
 
   // 에러 메시지 처리 함수
   const getErrorMessage = (error) => {
@@ -160,6 +168,7 @@ export const useAuth = () => {
     signInWithGoogle,
     signOut: handleSignOut,
     getUserInfo,
+    setUserInfo,
     clearError
   };
 }; 

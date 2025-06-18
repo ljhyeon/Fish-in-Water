@@ -5,21 +5,25 @@ export default function AuctionItem({ item, isSupplier = false, onClick, pageTyp
     const getStatusColor = (status) => {
         switch (status) {
             case '진행중':
+            case 'ACTIVE':
                 return { color: 'primary', variant: 'dark' };
             case '낙찰/결제대기중':
             case '정산대기중':
+            case 'FINISHED':
                 return { color: 'secondary', variant: 'main' };
             case '낙찰/결제완료':
             case '완료':
                 return { color: 'secondary', variant: 'light' };
             case '유찰':
+            case 'NO_BID':
                 return { color: 'primary', variant: 'main' };
             default:
                 return { color: 'default', variant: 'main' };
         }
     };
 
-    const status = isSupplier ? item.status.supplier : item.status.consumer;
+    // Firebase 데이터 구조에 맞게 상태 처리
+    const status = item.displayStatus || item.status || (isSupplier ? item.status?.supplier : item.status?.consumer);
     const statusColor = getStatusColor(status);
 
     const renderContent = () => {
@@ -31,6 +35,12 @@ export default function AuctionItem({ item, isSupplier = false, onClick, pageTyp
                         <Typography variant="body2" color="text.secondary">
                             {item.recommend}
                         </Typography>
+                    </Box>
+                );
+            case 'home2':
+                return (
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, ml: 3 }}>
+                        <Typography variant="h6">{item.name}</Typography>
                     </Box>
                 );
             case 'home3':
@@ -62,7 +72,7 @@ export default function AuctionItem({ item, isSupplier = false, onClick, pageTyp
             onClick={onClick}
         >
             <ListItemAvatar>
-                <Avatar alt={item.name} src={item.image} sx={{ width: 80, height: 80 }} />
+                <Avatar alt={item.name} src={item.image} sx={{ width: 80, height: 80, objectFit: 'contain' }} />
             </ListItemAvatar>
             <ListItemText
                 primary={renderContent()}
