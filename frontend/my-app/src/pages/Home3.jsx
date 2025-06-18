@@ -16,6 +16,7 @@ import { useUserAuctions } from '../hooks/useAuction';
 import { uploadSellerDocument, convertToSeller } from '../services/userService';
 import AuctionItem from '../components/AuctionItem';
 import FormDialog from '../components/FormDialog';
+import { NonData } from '../components/NonData';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -260,12 +261,9 @@ export function Home3() {
 
         if (!participatedAuctions || participatedAuctions.length === 0) {
             return (
-                <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100%', gap: 2 }}>
-                    <img src="/non_fish.svg" style={{ width: '300px', height: 'auto' }} />
-                    <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-                        참여한 경매가 없어요! 경매에 참여해보세요.
-                    </Typography>
-                </Box>
+                <NonData>
+                    참여한 경매가 없어요! 경매에 참여해보세요.
+                </NonData>
             );
         }
 
