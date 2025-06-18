@@ -179,7 +179,7 @@ export const useLiveAuctionImproved = (auctionId) => {
       throw new Error('경매 정보를 불러올 수 없습니다.');
     }
 
-    const minBidAmount = liveData.currentPrice + 1000; // 최소 입찰 단위
+    const minBidAmount = liveData.currentPrice + 1; // 최소 입찰 단위
     if (amount < minBidAmount) {
       throw new Error(`최소 ${minBidAmount.toLocaleString()}원 이상 입찰해주세요.`);
     }

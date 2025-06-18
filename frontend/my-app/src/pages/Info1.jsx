@@ -129,8 +129,8 @@ export function Info1() {
             return;
         }
 
-        // 최소 입찰 금액 확인 (현재가 + 1000원)
-        const minBidAmount = currentPrice + 1000;
+        // 최소 입찰 금액 확인 (현재가)
+        const minBidAmount = currentPrice + 1;
         if (bidAmount < minBidAmount) {
             handleClose(); // 입력창 닫기
             setOpenMinPrice(true);
@@ -283,7 +283,7 @@ export function Info1() {
                 
                 {!isAuctionExpired() && isActive && (
                     <Typography variant="caption" color="success.main">
-                        최소 입찰 금액: ₩{(currentPrice + 1000).toLocaleString()}
+                        최소 입찰 금액: ₩{(currentPrice + 1).toLocaleString()}
                     </Typography>
                 )}
             </Box>
@@ -298,9 +298,9 @@ export function Info1() {
                 { 
                     name: 'bid', 
                     label: '입찰 금액', 
-                    type: 'number', 
+                    type: 'text', // number에서 text로 변경
                     required: true,
-                    placeholder: isActive ? (currentPrice + 1000).toString() : auctionData.startPrice.toString()
+                    placeholder: isActive ? (currentPrice + 1).toLocaleString() : auctionData.startPrice.toLocaleString()
                 },
             ]}
         />
@@ -312,7 +312,7 @@ export function Info1() {
         >
             <Typography variant='body2'>
                 입찰 금액이 최소 입찰 금액보다 낮습니다. 
-                최소 ₩{(currentPrice + 1000).toLocaleString()} 이상 입찰해주세요.
+                최소 ₩{(currentPrice + 1).toLocaleString()} 이상 입찰해주세요.
             </Typography>
         </InfoDialog>
         
